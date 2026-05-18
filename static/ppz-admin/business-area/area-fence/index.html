@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>围栏编辑 - 拼拼坐后台管理系统</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="/static/_common/login-modal.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="fence-page-container">
+        <div class="fence-header">
+            <div class="fence-header-left">
+                <h2 id="pageTitle">添加运营区域</h2>
+                <span class="fence-area-name" id="areaNameDisplay" style="display:none;"></span>
+            </div>
+            <div class="fence-header-right">
+                <button class="btn btn-secondary" id="cancelBtn">关闭</button>
+            </div>
+        </div>
+
+        <div class="control-bar">
+            <div class="city-select-group">
+                <label class="select-label">选择城市：</label>
+                <div class="select-row">
+                    <select class="form-select city-select" id="provinceSelect" disabled>
+                        <option value="">请选择省份</option>
+                    </select>
+                    <select class="form-select city-select" id="citySelect" disabled>
+                        <option value="">请选择城市</option>
+                    </select>
+                    <select class="form-select city-select" id="districtSelect" disabled>
+                        <option value="">请选择区县</option>
+                    </select>
+                </div>
+            </div>
+            <div class="search-group">
+                <input type="text" class="search-input" id="searchInput" placeholder="搜索行政区域（如：朝阳区）" autocomplete="off" />
+                <button class="btn btn-primary" id="searchBtn">
+                    <span>🔍</span> 搜索
+                </button>
+            </div>
+        </div>
+
+        <div class="map-wrapper">
+            <div id="mapContainer" class="map-container"></div>
+            <div class="action-bar" id="actionBar">
+                <div class="action-bar-content">
+                    <div class="fence-legend">
+                        <div class="legend-item">
+                            <div class="legend-color legend-blue"></div>
+                            <span>待确认围栏</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color legend-green"></div>
+                            <span>已确认围栏</span>
+                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" id="addFenceBtn">
+                            <span>➕</span> 加入围栏
+                        </button>
+                        <button class="btn btn-danger" id="removeFenceBtn">
+                            <span>➖</span> 删除围栏
+                        </button>
+                        <button class="btn btn-secondary" id="clearAllBtn">
+                            <span>🗑️</span> 清除所有
+                        </button>
+                        <button class="btn btn-success" id="submitBtn">
+                            <span>💾</span> 提交保存
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="submitModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>保存围栏</h3>
+                <button class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="areaNameInput">区域名称</label>
+                    <input type="text" id="areaNameInput" class="form-input" placeholder="请输入区域名称" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelModalBtn">取消</button>
+                <button class="btn btn-primary" id="confirmModalBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>确认修改</h3>
+                <button class="modal-close" id="closeConfirmModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>确定要修改该运营区域的围栏数据吗？</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelConfirmModalBtn">取消</button>
+                <button class="btn btn-primary" id="confirmEditBtn">确定修改</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading" id="loading"><div class="loading-spinner"></div></div>
+    <div class="toast" id="toast"></div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

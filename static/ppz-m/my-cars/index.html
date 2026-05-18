@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>车辆管理 - 拼拼坐</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="/static/_common/login-modal.css">
+    <link rel="stylesheet" href="../_common/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <main class="main-content" id="mainContent">
+            <div class="car-management-page" id="carManagementPage">
+                <div class="page-header">
+                    <button class="btn-back" onclick="goBackToProfile()">
+                        <span>‹</span>
+                    </button>
+                    <h1>车辆管理</h1>
+                    <div class="placeholder"></div>
+                </div>
+
+                <div class="car-photo-carousel" id="carPhotoCarousel">
+                    <div class="carousel-container" id="carouselContainer">
+                    </div>
+                    <div class="carousel-indicators" id="carouselIndicators">
+                    </div>
+                </div>
+
+                <div class="car-list-section">
+                    <div class="list-header">
+                        <h3>我的车辆</h3>
+                        <button class="btn btn-primary btn-sm" onclick="goToAddCar()">
+                            + 添加车辆
+                        </button>
+                    </div>
+                    <div class="car-list" id="carList">
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

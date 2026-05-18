@@ -1,0 +1,189 @@
+.drag-tip {
+    text-align: center;
+    font-size: 12px;
+    color: #b8860b;
+    background: #fff8e1;
+    padding: 4px 0;
+    border-bottom: 1px solid #fef3c7;
+}
+
+.address-list {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.address-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+.address-item:last-child {
+    border-bottom: none;
+}
+
+.address-item:hover {
+    background-color: #f9f9f9;
+}
+
+.address-item.dragging {
+    opacity: 0.5;
+    background-color: #e3f2fd;
+}
+
+.address-item.drag-over {
+    border-top: 2px solid #667eea;
+}
+
+.drag-handle {
+    margin-right: 12px;
+    color: #ccc;
+    font-size: 18px;
+    cursor: grab;
+    user-select: none;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.address-info {
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+}
+
+.address-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+}
+
+.address-name .edit-btn {
+    margin-left: 8px;
+    color: #999;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.address-name .edit-btn:hover {
+    color: #667eea;
+    background-color: #f5f3ff;
+}
+
+.address-name .edit-input {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 8px;
+    border: 1px solid #667eea;
+    border-radius: 4px;
+    font-size: 14px;
+    outline: none;
+}
+
+.address-name .edit-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: 8px;
+}
+
+.address-name .edit-actions button {
+    padding: 2px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.address-name .edit-actions .btn-confirm {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+}
+
+.address-name .edit-actions .btn-cancel {
+    background: #f5f5f5;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+.address-detail {
+    font-size: 13px;
+    color: #999;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.address-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: 12px;
+}
+
+.empty-address {
+    padding: 40px 20px;
+    text-align: center;
+    color: #999;
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+.empty-text {
+    font-size: 14px;
+}
+
+.btn-delete {
+    padding: 4px 8px;
+    font-size: 12px;
+    background: #fef2f2;
+    color: #ef4444;
+    border: 1px solid #fecaca;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-delete:hover {
+    background: #fee2e2;
+}
+
+.subpage-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.subpage-overlay.show {
+    display: block;
+}
+
+.subpage-overlay.show-active {
+    opacity: 1;
+}
+
+.subpage-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}

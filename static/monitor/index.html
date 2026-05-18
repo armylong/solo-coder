@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统监控</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="/static/_common/login-modal.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>📊 系统监控</h1>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item active" data-page="overview" onclick="switchPage('overview')">
+                    <span class="nav-icon">🖥️</span>
+                    <span class="nav-text">系统概览</span>
+                </div>
+                <div class="nav-item" data-page="cpu" onclick="switchPage('cpu')">
+                    <span class="nav-icon">⚡</span>
+                    <span class="nav-text">CPU监控</span>
+                </div>
+                <div class="nav-item" data-page="memory" onclick="switchPage('memory')">
+                    <span class="nav-icon">💾</span>
+                    <span class="nav-text">内存监控</span>
+                </div>
+                <div class="nav-item" data-page="disk" onclick="switchPage('disk')">
+                    <span class="nav-icon">💿</span>
+                    <span class="nav-text">硬盘监控</span>
+                </div>
+                <div class="nav-item" data-page="network" onclick="switchPage('network')">
+                    <span class="nav-icon">🌐</span>
+                    <span class="nav-text">网络监控</span>
+                </div>
+                <div class="nav-item" data-page="gpu" onclick="switchPage('gpu')">
+                    <span class="nav-icon">🎮</span>
+                    <span class="nav-text">GPU监控</span>
+                </div>
+                <div class="nav-item" data-page="process" onclick="switchPage('process')">
+                    <span class="nav-icon">🔧</span>
+                    <span class="nav-text">进程监控</span>
+                </div>
+                <div class="nav-item" data-page="port" onclick="switchPage('port')">
+                    <span class="nav-icon">🚪</span>
+                    <span class="nav-text">端口监控</span>
+                </div>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <div class="header-left">
+                    <h2 id="pageTitle">系统概览</h2>
+                    <span class="update-info" id="updateInfo">最后更新: --</span>
+                </div>
+                <div class="header-right">
+                    <div class="time-range-selector">
+                        <span class="time-label">时间范围:</span>
+                        <button class="time-btn active" data-range="10s" onclick="switchTimeRange('10s')">10秒</button>
+                        <button class="time-btn" data-range="1m" onclick="switchTimeRange('1m')">1分钟</button>
+                        <button class="time-btn" data-range="1h" onclick="switchTimeRange('1h')">1小时</button>
+                        <button class="time-btn" data-range="1d" onclick="switchTimeRange('1d')">1天</button>
+                    </div>
+                    <button class="refresh-btn" onclick="manualRefresh()">
+                        <span>🔄</span> 刷新
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <div class="page-container active" id="page-overview">
+                    <div class="overview-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon cpu">⚡</div>
+                            <div class="stat-info">
+                                <div class="stat-label">CPU使用率</div>
+                                <div class="stat-value" id="cpuStat">--%</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon memory">💾</div>
+                            <div class="stat-info">
+                                <div class="stat-label">内存使用率</div>
+                                <div class="stat-value" id="memoryStat">--%</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon disk">💿</div>
+                            <div class="stat-info">
+                                <div class="stat-label">磁盘使用率</div>
+                                <div class="stat-value" id="diskStat">--%</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon network">🌐</div>
+                            <div class="stat-info">
+                                <div class="stat-label">网络流量</div>
+                                <div class="stat-value" id="networkStat">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h3>CPU使用率趋势</h3>
+                            <div class="chart-container">
+                                <canvas id="cpuChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>内存使用率趋势</h3>
+                            <div class="chart-container">
+                                <canvas id="memoryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>网络流量趋势</h3>
+                            <div class="chart-container">
+                                <canvas id="networkChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>GPU使用率趋势</h3>
+                            <div class="chart-container">
+                                <canvas id="gpuChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="system-info-section">
+                        <h3>系统信息</h3>
+                        <div class="system-info-grid" id="systemInfoGrid">
+                            <div class="info-item">
+                                <span class="info-label">主机名</span>
+                                <span class="info-value" id="hostname">--</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">操作系统</span>
+                                <span class="info-value" id="osInfo">--</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">平台版本</span>
+                                <span class="info-value" id="platformVersion">--</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">架构</span>
+                                <span class="info-value" id="arch">--</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">CPU核心数</span>
+                                <span class="info-value" id="cpuCores">--</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">运行时间</span>
+                                <span class="info-value" id="uptime">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-container" id="page-cpu">
+                    <div class="chart-section">
+                        <h3>CPU使用率趋势</h3>
+                        <div class="chart-container large">
+                            <canvas id="cpuDetailChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="cpu-info-section">
+                        <div class="info-row">
+                            <span class="info-label">CPU型号:</span>
+                            <span class="info-value" id="cpuModel">--</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">物理核心:</span>
+                            <span class="info-value" id="physicalCores">--</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">逻辑核心:</span>
+                            <span class="info-value" id="logicalCores">--</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">主频:</span>
+                            <span class="info-value" id="cpuFreq">--</span>
+                        </div>
+                    </div>
+
+                    <div class="table-section">
+                        <div class="table-header">
+                            <h3>CPU占用进程TOP50</h3>
+                            <div class="table-controls">
+                                <div class="sort-controls">
+                                    <span>排序:</span>
+                                    <select id="cpuSortBy" onchange="refreshCPUProcesses()">
+                                        <option value="cpu">CPU使用率</option>
+                                        <option value="memory">内存使用率</option>
+                                        <option value="pid">进程ID</option>
+                                        <option value="time">启动时间</option>
+                                    </select>
+                                    <select id="cpuSortDirection" onchange="refreshCPUProcesses()">
+                                        <option value="desc">降序</option>
+                                        <option value="asc">升序</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>进程ID</th>
+                                        <th>进程名称</th>
+                                        <th>CPU使用率</th>
+                                        <th>内存使用率</th>
+                                        <th>内存使用</th>
+                                        <th>运行用户</th>
+                                        <th>启动时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cpuProcessTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-container" id="page-memory">
+                    <div class="chart-section">
+                        <h3>内存使用率趋势</h3>
+                        <div class="chart-container large">
+                            <canvas id="memoryDetailChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="memory-info-section">
+                        <div class="memory-stats">
+                            <div class="memory-stat-item">
+                                <div class="memory-bar">
+                                    <div class="memory-bar-fill" id="memoryBarFill" style="width: 0%"></div>
+                                </div>
+                                <div class="memory-labels">
+                                    <span class="memory-label">已用: <span id="memoryUsed">--</span></span>
+                                    <span class="memory-label">总量: <span id="memoryTotal">--</span></span>
+                                    <span class="memory-label">使用率: <span id="memoryPercent">--%</span></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="memory-details">
+                            <div class="info-row">
+                                <span class="info-label">可用内存:</span>
+                                <span class="info-value" id="memoryAvailable">--</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">缓冲区:</span>
+                                <span class="info-value" id="memoryBuffers">--</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">缓存:</span>
+                                <span class="info-value" id="memoryCached">--</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">交换空间:</span>
+                                <span class="info-value" id="swapInfo">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-container" id="page-disk">
+                    <div class="chart-section">
+                        <h3>磁盘使用率</h3>
+                        <div class="chart-container large">
+                            <canvas id="diskChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="table-section">
+                        <div class="table-header">
+                            <h3>磁盘分区列表</h3>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>设备名</th>
+                                        <th>挂载点</th>
+                                        <th>文件系统</th>
+                                        <th>总容量</th>
+                                        <th>已使用</th>
+                                        <th>空闲</th>
+                                        <th>使用率</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="diskTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-container" id="page-network">
+                    <div class="chart-section">
+                        <h3>网络流量趋势</h3>
+                        <div class="chart-container large">
+                            <canvas id="networkDetailChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="table-section">
+                        <div class="table-header">
+                            <h3>网络带宽</h3>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>接口名称</th>
+                                        <th>发送速率</th>
+                                        <th>接收速率</th>
+                                        <th>总速率</th>
+                                        <th>累计发送</th>
+                                        <th>累计接收</th>
+                                        <th>使用率</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="networkBandwidthTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="table-section">
+                        <div class="table-header">
+                            <h3>网络占用进程</h3>
+                            <div class="table-controls">
+                                <div class="sort-controls">
+                                    <span>排序:</span>
+                                    <select id="networkSortBy" onchange="refreshNetworkProcesses()">
+                                        <option value="usage">使用率</option>
+                                        <option value="connections">连接数</option>
+                                        <option value="port">端口</option>
+                                    </select>
+                                    <select id="networkSortDirection" onchange="refreshNetworkProcesses()">
+                                        <option value="desc">降序</option>
+                                        <option value="asc">升序</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>进程ID</th>
+                                        <th>进程名称</th>
+                                        <th>协议</th>
+                                        <th>本地端口</th>
+                                        <th>远程端口</th>
+                                        <th>连接数</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="networkProcessTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-container" id="page-gpu">
+                    <div class="chart-section">
+                        <h3>GPU使用率趋势</h3>
+                        <div class="chart-container large">
+                            <canvas id="gpuDetailChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="table-section">
+                        <div class="table-header">
+                            <h3>GPU列表</h3>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>索引</th>
+                                        <th>厂商</th>
+                                        <th>型号</th>
+                                        <th>显存总量</th>
+                                        <th>显存已用</th>
+                                        <th>显存空闲</th>
+                                        <th>GPU使用率</th>
+                                        <th>显存使用率</th>
+                                        <th>温度</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="gpuTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-container" id="page-process">
+                    <div class="chart-section">
+                        <h3>进程资源使用趋势</h3>
+                        <div class="chart-container large">
+                            <canvas id="processChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="table-section">
+                        <div class="table-header">
+                            <h3>进程列表TOP100</h3>
+                            <div class="table-controls">
+                                <div class="sort-controls">
+                                    <span>排序:</span>
+                                    <select id="processSortBy" onchange="refreshProcessList()">
+                                        <option value="cpu">CPU使用率</option>
+                                        <option value="memory">内存使用率</option>
+                                        <option value="pid">进程ID</option>
+                                        <option value="time">启动时间</option>
+                                    </select>
+                                    <select id="processSortDirection" onchange="refreshProcessList()">
+                                        <option value="desc">降序</option>
+                                        <option value="asc">升序</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>进程ID</th>
+                                        <th>父进程ID</th>
+                                        <th>进程名称</th>
+                                        <th>CPU使用率</th>
+                                        <th>内存使用率</th>
+                                        <th>内存使用</th>
+                                        <th>线程数</th>
+                                        <th>状态</th>
+                                        <th>运行用户</th>
+                                        <th>启动时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="processTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="page-container" id="page-port">
+                    <div class="table-section">
+                        <div class="table-header">
+                            <h3>端口列表</h3>
+                            <div class="table-controls">
+                                <div class="filter-controls">
+                                    <span>端口筛选:</span>
+                                    <input type="number" id="portFilter" placeholder="输入端口号" min="1" max="65535">
+                                    <button class="btn btn-primary btn-sm" onclick="refreshPortList()">筛选</button>
+                                    <button class="btn btn-secondary btn-sm" onclick="clearPortFilter()">清除</button>
+                                </div>
+                                <div class="sort-controls">
+                                    <span>排序:</span>
+                                    <select id="portSortBy" onchange="refreshPortList()">
+                                        <option value="port">端口号</option>
+                                    </select>
+                                    <select id="portSortDirection" onchange="refreshPortList()">
+                                        <option value="desc">降序</option>
+                                        <option value="asc">升序</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>协议</th>
+                                        <th>端口号</th>
+                                        <th>本地地址</th>
+                                        <th>状态</th>
+                                        <th>进程ID</th>
+                                        <th>进程名称</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="portTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="confirmModalTitle">确认操作</h3>
+                <button class="modal-close" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage">确定要执行此操作吗？</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">取消</button>
+                <button class="btn btn-danger" id="confirmModalBtn" onclick="executeConfirmAction()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

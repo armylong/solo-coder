@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D地球查看器</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="top-bar">
+            <h1>🌍 3D地球查看器</h1>
+            <button class="reset-btn" id="resetBtn">🔄 重置</button>
+        </header>
+
+        <main class="main-content">
+            <div class="canvas-container" id="canvasContainer"></div>
+        </main>
+
+        <aside class="right-sidebar">
+            <div class="zoom-control">
+                <div class="zoom-label-top">+</div>
+                <div class="zoom-slider-wrapper">
+                    <div class="zoom-slider-track">
+                        <div class="zoom-slider-fill" id="zoomSliderFill"></div>
+                    </div>
+                    <div class="zoom-slider-thumb" id="zoomSliderThumb"></div>
+                </div>
+                <div class="zoom-label-bottom">-</div>
+            </div>
+        </aside>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>年会抽奖系统</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <canvas id="sphereCanvas"></canvas>
+        
+        <header class="banner">
+            <h1 class="banner-title" id="bannerTitle">2024年度公司年会抽奖盛典</h1>
+        </header>
+        
+        <aside class="prize-panel" id="prizePanel">
+            <div class="panel-header">
+                <h2>奖项设置</h2>
+            </div>
+            <div class="prize-list" id="prizeList">
+            </div>
+        </aside>
+        
+        <aside class="winners-panel">
+            <div class="panel-header">
+                <h2>中奖名单</h2>
+            </div>
+            <div class="winners-list-wrapper">
+                <div class="winners-list" id="winnersList">
+                    <div class="winners-placeholder">暂无中奖者</div>
+                </div>
+            </div>
+        </aside>
+        
+        <footer class="control-panel">
+            <div class="control-group">
+                <div class="dropdown-wrapper">
+                    <button class="dropdown-btn" id="modeDropdown">
+                        <span class="dropdown-text" id="selectedMode">选择开奖方式</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="dropdown-menu" id="modeMenu">
+                        <div class="dropdown-item" data-value="auto">自动开奖</div>
+                        <div class="dropdown-item" data-value="manual">手动开奖</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-group" id="autoTimeGroup" style="display: none;">
+                <div class="dropdown-wrapper">
+                    <button class="dropdown-btn" id="timeDropdown">
+                        <span class="dropdown-text" id="selectedTime">5秒</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="dropdown-menu" id="timeMenu">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="control-group action-group">
+                <button class="action-btn disabled" id="actionBtn">
+                    <span class="btn-text" id="btnText">请选择奖项</span>
+                </button>
+            </div>
+            
+            <div class="timer-display" id="timerDisplay">
+                <span class="timer-value" id="timerValue">00:00:00</span>
+            </div>
+        </footer>
+    </div>
+    
+    <div class="modal-overlay" id="winnerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🎉 恭喜中奖 🎉</h2>
+            </div>
+            <div class="modal-body">
+                <div class="winner-prize" id="modalPrize">特等奖</div>
+                <div class="winner-name" id="modalName">张伟</div>
+                <div class="winner-phone" id="modalPhone">138****0001</div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-close-btn" id="closeModal">确定</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite Manager</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="/static/_common/login-modal.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>SQLite Manager</h2>
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-item overview-item active" data-type="overview">
+                    <span class="icon">📊</span>
+                    <span class="text">SQLite 概览</span>
+                </div>
+                <div class="sidebar-divider"></div>
+                <div class="tables-header">数据表</div>
+                <div class="tables-list" id="tablesList">
+                </div>
+            </div>
+        </aside>
+        <main class="main-content">
+            <div id="overviewPanel" class="panel active">
+                <h2>SQLite 数据库概览</h2>
+                <div class="overview-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">📁</div>
+                        <div class="stat-info">
+                            <div class="stat-label">数据库路径</div>
+                            <div class="stat-value" id="dbPath">-</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💾</div>
+                        <div class="stat-info">
+                            <div class="stat-label">数据库大小</div>
+                            <div class="stat-value" id="dbSize">-</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-info">
+                            <div class="stat-label">数据表数量</div>
+                            <div class="stat-value" id="tableCount">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tables-overview">
+                    <h3>所有数据表</h3>
+                    <div class="tables-grid" id="tablesGrid">
+                    </div>
+                </div>
+            </div>
+            <div id="tablePanel" class="panel">
+                <div class="table-header">
+                    <h2 id="currentTableName">-</h2>
+                    <div class="table-info">
+                        <span id="tableRowCount">总条数: -</span>
+                    </div>
+                    <div class="table-actions">
+                        <button class="btn btn-danger" id="deleteSelectedBtn" onclick="deleteSelectedRows()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            删除选中
+                        </button>
+                        <button class="btn btn-danger" id="clearTableBtn" onclick="clearTable()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            清空表
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="filter-section" id="filterSection">
+                    <div class="filter-header">
+                        <select class="filter-column" id="pendingFilterColumn">
+                            <option value="">选择字段</option>
+                        </select>
+                        <input type="text" class="filter-value" id="pendingFilterValue" placeholder="输入值">
+                        <button class="btn btn-small btn-primary" id="addFilterBtn" onclick="addPendingFilter()">+ 添加条件</button>
+                        <button class="btn btn-small" id="clearFilterBtn" onclick="clearFilters()">清除</button>
+                    </div>
+                    <div class="filter-tags" id="filterTags">
+                    </div>
+                </div>
+                
+                <div class="sql-section">
+                    <div class="sql-header">
+                        <span class="sql-title">SQL 执行</span>
+                        <button class="btn btn-primary btn-small" id="executeSqlBtn" onclick="executeSql()">执行</button>
+                    </div>
+                    <textarea class="sql-input" id="sqlInput" placeholder="输入 SQL 语句，如: SELECT * FROM table_name WHERE ..."></textarea>
+                    <div class="sql-result" id="sqlResult" style="display: none;">
+                        <div class="sql-result-header">
+                            <span class="sql-result-title" id="sqlResultTitle">执行结果</span>
+                            <button class="btn-small" onclick="closeSqlResult()">×</button>
+                        </div>
+                        <div class="sql-result-content" id="sqlResultContent"></div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="data-table" id="dataTable">
+                        <thead id="tableHead"></thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <div class="pagination-info">
+                        共 <span id="totalRows">0</span> 条记录
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" id="prevPage">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+                        <div class="page-numbers" id="pageNumbers"></div>
+                        <button class="page-btn" id="nextPage">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+    <div class="cell-modal" id="cellModal">
+        <div class="cell-modal-content">
+            <div class="cell-modal-header">
+                <h3 id="cellModalTitle">单元格内容</h3>
+                <button class="cell-modal-close" onclick="closeCellModal()">&times;</button>
+            </div>
+            <div class="cell-modal-body" id="cellModalBody">
+            </div>
+        </div>
+    </div>
+    <div class="edit-modal" id="editModal">
+        <div class="edit-modal-content">
+            <div class="edit-modal-header">
+                <h3 id="editModalTitle">编辑记录</h3>
+                <button class="edit-modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="edit-modal-body" id="editModalBody">
+            </div>
+            <div class="edit-modal-footer">
+                <button class="btn" onclick="closeEditModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveEdit()">保存</button>
+            </div>
+        </div>
+    </div>
+    <div class="toast-container" id="toastContainer"></div>
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

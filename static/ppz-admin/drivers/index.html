@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>司机管理 - 拼拼坐后台管理系统</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="/static/_common/login-modal.css">
+    <link rel="stylesheet" href="../_index/css/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="main-content">
+            <div class="page-content active">
+                <div class="page-header">
+                    <h2>司机管理</h2>
+                    <div class="header-actions">
+                        <select class="form-select" id="statusFilter" onchange="filterByStatus()">
+                            <option value="0">全部状态</option>
+                            <option value="1">正常</option>
+                            <option value="2">已封禁</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="refreshDriverList()">
+                            <span>🔄</span> 刷新
+                        </button>
+                    </div>
+                </div>
+
+                <div class="driver-stats-section">
+                    <div class="mini-stat">
+                        <span class="mini-stat-label">当前查询：</span>
+                        <span class="mini-stat-value" id="driverCount">-</span>
+                        <span class="mini-stat-label">名司机</span>
+                    </div>
+                </div>
+
+                <div class="table-section">
+                    <div class="table-container">
+                        <table class="data-table" id="driverTable">
+                            <thead>
+                                <tr>
+                                    <th>UID</th>
+                                    <th>账号</th>
+                                    <th>姓名</th>
+                                    <th>状态</th>
+                                    <th>车辆信息</th>
+                                    <th>通过车辆</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="driverTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <div class="pagination-info">
+                            共 <span id="totalDriverCount">0</span> 条记录
+                        </div>
+                        <div class="pagination-controls">
+                            <button class="page-btn" id="prevDriverPage" onclick="prevDriverPage()">
+                                <span>‹</span>
+                            </button>
+                            <div class="page-numbers" id="driverPageNumbers"></div>
+                            <button class="page-btn" id="nextDriverPage" onclick="nextDriverPage()">
+                                <span>›</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="carDetailModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>车辆详情</h3>
+                <button class="modal-close" onclick="closeCarDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="carDetailContent">
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="banModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>封禁司机</h3>
+                <button class="modal-close" onclick="closeBanModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="banForm" onsubmit="return submitBan(event)">
+                    <input type="hidden" id="banUid">
+                    <div class="form-group">
+                        <label>司机信息</label>
+                        <div class="driver-info-display" id="banDriverInfo"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="banReason">封禁原因（可选）</label>
+                        <textarea id="banReason" name="ban_reason" rows="3" placeholder="请输入封禁原因"></textarea>
+                    </div>
+                    <div class="warning-box">
+                        <p>⚠️ 封禁后该司机：</p>
+                        <ul>
+                            <li>所有车辆将被置为驳回状态</li>
+                            <li>无法添加新车辆</li>
+                            <li>需要解封后才能重新使用</li>
+                        </ul>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeBanModal()">取消</button>
+                        <button type="submit" class="btn btn-danger">确认封禁</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

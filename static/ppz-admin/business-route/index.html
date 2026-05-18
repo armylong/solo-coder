@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>运营路线 - 拼拼坐后台管理系统</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="/static/_common/login-modal.css">
+    <link rel="stylesheet" href="../_index/css/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h2>运营路线</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="openAddModal()">
+                        <span>➕</span> 添加路线
+                    </button>
+                    <select class="form-select status-filter" id="statusFilter" onchange="filterByStatus()">
+                        <option value="0">全部状态</option>
+                        <option value="1">正常</option>
+                        <option value="2">停用</option>
+                    </select>
+                    <div class="search-group">
+                        <input type="text" class="search-input" id="searchInput" placeholder="搜索路线名称" autocomplete="off" />
+                        <button class="btn btn-primary" onclick="searchRoute()">
+                            <span>🔍</span> 搜索
+                        </button>
+                    </div>
+                    <button class="btn btn-secondary" onclick="refreshList()">
+                        <span>🔄</span> 刷新
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-section">
+                <div class="table-container">
+                    <table class="data-table" id="routeTable">
+                        <thead>
+                            <tr>
+                                <th>路线ID</th>
+                                <th>路线名称</th>
+                                <th>A点</th>
+                                <th>B点</th>
+                                <th>状态</th>
+                                <th>更新时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="routeTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <div class="pagination-info">
+                        共 <span id="totalCount">0</span> 条记录
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" id="prevPage" onclick="prevPage()">
+                            <span>‹</span>
+                        </button>
+                        <div class="page-numbers" id="pageNumbers"></div>
+                        <button class="page-btn" id="nextPage" onclick="nextPage()">
+                            <span>›</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="routeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">添加路线</h3>
+                <button class="modal-close" onclick="closeRouteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="routeNameInput">路线名称</label>
+                    <input type="text" id="routeNameInput" class="form-input" placeholder="请输入路线名称" />
+                </div>
+                <div class="form-group">
+                    <label for="aAreaSelect">A点区域</label>
+                    <select id="aAreaSelect" class="form-select form-input">
+                        <option value="">请选择A点区域</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="bAreaSelect">B点区域</label>
+                    <select id="bAreaSelect" class="form-select form-input">
+                        <option value="">请选择B点区域</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>状态</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="routeStatus" value="1" checked />
+                            <span>正常</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="routeStatus" value="2" />
+                            <span>停用</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeRouteModal()">取消</button>
+                <button class="btn btn-primary" id="saveRouteBtn" onclick="saveRoute()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="fence-overlay" id="fenceOverlay">
+        <div class="fence-overlay-content">
+            <iframe id="fenceIframe" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+
+    <div class="loading" id="loading"><div class="loading-spinner"></div></div>
+    <div class="toast" id="toast"></div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

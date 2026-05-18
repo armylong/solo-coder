@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Long Doc - Markdown知识库</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="app-title">
+                    <span class="app-icon">📚</span>
+                    Long Doc
+                </h1>
+                <button class="btn btn-create-root" id="createRootBtn" title="新建文档">
+                    <span class="btn-icon">+</span>
+                </button>
+            </div>
+            <div class="doc-list" id="docList">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">📄</div>
+                    <p>暂无文档</p>
+                    <p class="empty-hint">点击右上角 + 创建第一个文档</p>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="editor-container" id="editorContainer">
+                <div class="editor-header">
+                    <div class="doc-title" id="docTitle">
+                        <span class="title-placeholder">请选择或创建一个文档</span>
+                    </div>
+                    <div class="editor-actions">
+                        <button class="btn btn-toggle-toc" id="toggleTocBtn" title="显示/隐藏目录" style="display: none;">
+                            <span class="btn-icon">☰</span>
+                        </button>
+                        <button class="btn btn-copy" id="copyBtn" title="复制Markdown内容" style="display: none;">
+                            <span class="btn-icon">📋</span>
+                            复制
+                        </button>
+                    </div>
+                </div>
+                <div class="editor-body">
+                    <div class="toc-container" id="tocContainer">
+                        <div class="toc-header">
+                            <span>目录</span>
+                            <button class="btn btn-collapse-toc" id="collapseTocBtn" title="收起目录">
+                                <span class="collapse-icon">&lt;</span>
+                            </button>
+                        </div>
+                        <div class="toc-list" id="tocList"></div>
+                    </div>
+                    
+                    <button class="btn btn-expand-toc" id="expandTocBtn" title="展开目录" style="display: none;">
+                        <span class="expand-icon">&gt;</span>
+                    </button>
+                    
+                    <div class="editor-wrapper" id="editorWrapper">
+                        <div class="welcome-message" id="welcomeMessage">
+                            <div class="welcome-icon">✍️</div>
+                            <h2>开始使用 Long Doc</h2>
+                            <p>创建或选择一个文档开始编辑</p>
+                        </div>
+                        
+                        <div class="rich-editor" id="richEditor" contenteditable="true" data-placeholder="在这里输入内容，输入 / 查看快捷操作..."></div>
+                        
+                        <textarea class="editor" id="editor" style="display: none;" placeholder="在这里输入Markdown内容..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="createDocModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="createModalTitle">新建文档</h3>
+                <button class="modal-close" onclick="closeCreateModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="createDocForm">
+                    <div class="form-group">
+                        <label for="newDocName">文档名称</label>
+                        <input type="text" id="newDocName" name="newDocName" placeholder="请输入文档名称" required autofocus>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeCreateModal()">取消</button>
+                        <button type="submit" class="btn btn-primary">创建</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="confirmDeleteModal">
+        <div class="modal-content modal-confirm">
+            <div class="confirm-icon">⚠️</div>
+            <div class="confirm-title">确认删除</div>
+            <div class="confirm-message" id="deleteConfirmMessage">确定要删除此文档吗？<br>删除后无法恢复，所有子文档也将被删除。</div>
+            <div class="confirm-actions">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">取消</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="slash-menu" id="slashMenu">
+        <div class="slash-menu-search">
+            <input type="text" id="slashSearchInput" placeholder="搜索快捷操作...">
+        </div>
+        <div class="slash-menu-list" id="slashMenuList"></div>
+    </div>
+
+    <div class="code-lang-menu" id="codeLangMenu">
+        <div class="code-lang-list" id="codeLangList"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        Prism.plugins.autoloader.languages_path = 'https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/';
+    </script>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

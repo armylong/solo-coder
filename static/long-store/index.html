@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Long Store</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="store-container">
+        <header class="store-header">
+            <div class="header-content">
+                <div class="store-logo">🏪</div>
+                <div class="store-title">
+                    <h1>Long Store</h1>
+                    <p>发现精彩应用</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-refresh" onclick="refreshAppList()" title="刷新">
+                        <span>🔄</span>
+                    </button>
+                    <button class="btn btn-add" id="addAppBtn" onclick="showAddAppModal()" title="添加应用" style="display: none;">
+                        <span>➕</span> 添加应用
+                    </button>
+                    <button class="btn btn-add" id="batchAddBtn" onclick="batchAddApps()" title="一键添加所有应用" style="display: none;">
+                        <span>⚡</span> 一键添加
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <div class="tab-item active" data-tab="applications" onclick="switchTab('applications')">
+                <span class="tab-icon">📱</span>
+                <span class="tab-label">应用</span>
+            </div>
+            <div class="tab-item" data-tab="games" onclick="switchTab('games')">
+                <span class="tab-icon">🎮</span>
+                <span class="tab-label">游戏</span>
+            </div>
+        </nav>
+
+        <main class="store-content">
+            <div class="apps-section" id="applicationsSection">
+                <div class="section-header">
+                    <h2>应用</h2>
+                    <span class="app-count" id="applicationsCount">0 个应用</span>
+                </div>
+                <div class="apps-grid" id="applicationsGrid">
+                    <div class="empty-state">
+                        <div class="empty-icon">📱</div>
+                        <p>暂无可用应用</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="apps-section" id="gamesSection" style="display: none;">
+                <div class="section-header">
+                    <h2>游戏</h2>
+                    <span class="app-count" id="gamesCount">0 个游戏</span>
+                </div>
+                <div class="apps-grid" id="gamesGrid">
+                    <div class="empty-state">
+                        <div class="empty-icon">🎮</div>
+                        <p>暂无可用游戏</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="addAppModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">添加应用</h3>
+                <button class="modal-close" onclick="closeAddAppModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="appForm" onsubmit="submitAppForm(event)">
+                    <input type="hidden" id="editAppId">
+                    <div class="form-group">
+                        <label>快捷选择</label>
+                        <div class="quick-select" id="quickSelect">
+                            <input type="text" id="quickSelectInput" placeholder="搜索应用..." autocomplete="off">
+                            <div class="path-dropdown" id="pathDropdown"></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="appName">应用名称 *</label>
+                            <input type="text" id="appName" name="appName" placeholder="请输入应用名称" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="appIcon">图标</label>
+                            <input type="text" id="appIcon" name="appIcon" placeholder="如: 📱">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="appUrl">应用URL *</label>
+                        <input type="text" id="appUrl" name="appUrl" list="staticPathsList" placeholder="如: app-name/index.html" required>
+                        <datalist id="staticPathsList"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label for="appDesc">应用描述</label>
+                        <textarea id="appDesc" name="appDesc" placeholder="请输入应用描述" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="appType">类型</label>
+                            <select id="appType" name="appType">
+                                <option value="1">应用</option>
+                                <option value="2">游戏</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="appPermission">权限</label>
+                            <select id="appPermission" name="appPermission">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeAddAppModal()">取消</button>
+                        <button type="submit" class="btn btn-primary">确认</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="confirmModal">
+        <div class="modal-content modal-confirm">
+            <div class="confirm-icon" id="confirmIcon">⚠️</div>
+            <div class="confirm-title" id="confirmTitle">确认操作</div>
+            <div class="confirm-message" id="confirmMessage">确定要执行此操作吗？</div>
+            <div class="confirm-actions">
+                <button class="btn btn-secondary" onclick="closeConfirmModal()">取消</button>
+                <button class="btn btn-danger" id="confirmBtn">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

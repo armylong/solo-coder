@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>常用地址 - 拼拼坐</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="/static/_common/login-modal.css">
+    <link rel="stylesheet" href="../_common/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <main class="main-content" id="mainContent">
+            <div class="address-management-page" id="addressManagementPage">
+                <div class="page-header">
+                    <button class="btn-back" onclick="goBackToProfile()">
+                        <span>‹</span>
+                    </button>
+                    <h1>常用地址</h1>
+                    <button class="btn btn-primary btn-sm" onclick="openMapPicker()">+ 添加</button>
+                </div>
+
+                <div class="address-list" id="addressList">
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="subpage-overlay" id="mapPickerOverlay">
+        <iframe id="mapPickerFrame" class="subpage-iframe"></iframe>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

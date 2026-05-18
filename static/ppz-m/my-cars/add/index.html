@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新增车辆 - 拼拼坐</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="/static/_common/login-modal.css">
+    <link rel="stylesheet" href="../../_common/style.css">
+    <link rel="stylesheet" href="../../_common/license-plate-keyboard.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <main class="main-content" id="mainContent">
+            <div class="add-car-page" id="addCarPage">
+                <div class="page-header">
+                    <button class="btn-back" onclick="goBackToCarManagement()">
+                        <span>‹</span>
+                    </button>
+                    <h1 id="pageTitle">新增车辆</h1>
+                    <div class="placeholder"></div>
+                </div>
+
+                <div class="add-car-content">
+                    <form id="addCarForm" class="add-car-form">
+                        <div class="form-group">
+                            <label for="carModel">车辆型号 <span class="required">*</span></label>
+                            <input type="text" id="carModel" name="car_model" placeholder="例如：奔驰GLC300L" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="licensePlate">车牌号 <span class="required">*</span></label>
+                            <div class="license-plate-input" id="licensePlateInput" onclick="openLicensePlateKeyboard()">
+                                <span class="lp-placeholder" id="lpPlaceholder">点击输入车牌号</span>
+                                <span class="lp-value" id="lpValue" style="display:none;"></span>
+                            </div>
+                            <input type="hidden" id="licensePlate" name="license_plate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="carColor">车辆颜色 <span class="required">*</span></label>
+                            <input type="text" id="carColor" name="car_color" placeholder="例如：蓝色" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="licensePhoto">行驶证照片 <span class="required">*</span></label>
+                            <input type="text" id="licensePhoto" name="car_license_photo" placeholder="请输入行驶证照片URL" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="driverPhoto">驾驶证照片 <span class="required">*</span></label>
+                            <input type="text" id="driverPhoto" name="driver_license_photo" placeholder="请输入驾驶证照片URL" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="seats">乘客座位数 <span class="required">*</span></label>
+                            <input type="number" id="seats" name="seats" placeholder="请输入座位数，如：5" min="1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="carPhoto">车辆照片 <span class="required">*</span></label>
+                            <input type="text" id="carPhoto" name="car_photo" placeholder="请输入车辆照片URL" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">车辆简介 <span class="required">*</span></label>
+                            <textarea id="description" name="description" rows="4" placeholder="例如：这是一辆奔驰GLC300L，有5个座位，乘客可以免费乘坐，奔驰GLC300L是一个高级车，有高级的功能，例如：自动驾驶，自动泊车等" required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block mt-20" id="submitBtn">提交审核</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

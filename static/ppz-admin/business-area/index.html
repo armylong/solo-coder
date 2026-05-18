@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>运营区域 - 拼拼坐后台管理系统</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="/static/_common/login-modal.css">
+    <link rel="stylesheet" href="../_index/css/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h2>运营区域</h2>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="openFencePage(0)">
+                        <span>➕</span> 添加区域
+                    </button>
+                    <select class="form-select status-filter" id="statusFilter" onchange="filterByStatus()">
+                        <option value="0">全部状态</option>
+                        <option value="1">正常</option>
+                        <option value="2">停用</option>
+                    </select>
+                    <div class="search-group">
+                        <input type="text" class="search-input" id="searchInput" placeholder="搜索区域名称" autocomplete="off" />
+                        <button class="btn btn-primary" onclick="searchArea()">
+                            <span>🔍</span> 搜索
+                        </button>
+                    </div>
+                    <button class="btn btn-secondary" onclick="refreshList()">
+                        <span>🔄</span> 刷新
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-section">
+                <div class="table-container">
+                    <table class="data-table" id="areaTable">
+                        <thead>
+                            <tr>
+                                <th>区域ID</th>
+                                <th>区域名称</th>
+                                <th>围栏数据</th>
+                                <th>状态</th>
+                                <th>更新时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="areaTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <div class="pagination-info">
+                        共 <span id="totalCount">0</span> 条记录
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" id="prevPage" onclick="prevPage()">
+                            <span>‹</span>
+                        </button>
+                        <div class="page-numbers" id="pageNumbers"></div>
+                        <button class="page-btn" id="nextPage" onclick="nextPage()">
+                            <span>›</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="fenceModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>围栏数据</h3>
+                <button class="modal-close" onclick="closeFenceModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <pre class="fence-json-viewer" id="fenceJsonContent"></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="fence-overlay" id="fenceOverlay">
+        <div class="fence-overlay-content">
+            <iframe id="fenceIframe" src="" frameborder="0"></iframe>
+        </div>
+    </div>
+
+    <div class="loading" id="loading"><div class="loading-spinner"></div></div>
+    <div class="toast" id="toast"></div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+.tab-nav {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    background: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.tab-item {
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.tab-item:hover {
+    background-color: #f5f7fa;
+}
+
+.tab-item.active {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.tab-item .tab-count {
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.tab-item.active .tab-count {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.filter-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 160px;
+}
+
+.filter-item label {
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+}
+
+.filter-item input,
+.filter-item select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    transition: border-color 0.2s ease;
+}
+
+.filter-item input:focus,
+.filter-item select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.driver-audit-card {
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.driver-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: linear-gradient(90deg, #f8f9fa 0%, #fff 100%);
+    border-bottom: 1px solid #eee;
+}
+
+.driver-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.driver-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.driver-basic {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.driver-name-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.driver-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.driver-uid {
+    font-size: 12px;
+    color: #999;
+    background: #f0f0f0;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.driver-account {
+    font-size: 13px;
+    color: #666;
+}
+
+.driver-account span {
+    margin-right: 16px;
+}
+
+.driver-stats {
+    display: flex;
+    gap: 24px;
+}
+
+.stat-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.stat-pill-value {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.stat-pill-value.pending { color: #f59e0b; }
+.stat-pill-value.approved { color: #10b981; }
+.stat-pill-value.rejected { color: #ef4444; }
+
+.stat-pill-label {
+    font-size: 11px;
+    color: #999;
+}
+
+.cars-list {
+    padding: 12px 20px;
+}
+
+.car-audit-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #fafbfc;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.car-audit-item:last-child {
+    margin-bottom: 0;
+}
+
+.car-info-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.car-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.car-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.car-model {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.car-meta {
+    font-size: 12px;
+    color: #999;
+}
+
+.car-meta span {
+    margin-right: 12px;
+}
+
+.car-status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.audit-detail-modal .modal-content {
+    max-width: 800px;
+}
+
+.audit-detail-section {
+    margin-bottom: 24px;
+}
+
+.audit-detail-section h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.audit-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.audit-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.audit-info-label {
+    font-size: 12px;
+    color: #999;
+}
+
+.audit-info-value {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+}
+
+.audit-images-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.audit-image-card {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.audit-image-label {
+    padding: 8px 12px;
+    background: #f8f9fa;
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+    border-bottom: 1px solid #eee;
+}
+
+.audit-image-wrapper {
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+}
+
+.audit-image-wrapper img {
+    max-width: 100%;
+    max-height: 150px;
+    border-radius: 4px;
+    object-fit: contain;
+}
+
+.audit-action-section {
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.reject-reason-group {
+    margin-bottom: 16px;
+}
+
+.reject-reason-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #666;
+}
+
+.reject-reason-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.reject-reason-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.audit-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.btn-approve {
+    background-color: #10b981;
+    color: white;
+}
+
+.btn-approve:hover:not(:disabled) {
+    background-color: #059669;
+}
+
+.btn-reject {
+    background-color: #ef4444;
+    color: white;
+}
+
+.btn-reject:hover:not(:disabled) {
+    background-color: #dc2626;
+}

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选择地址 - 拼拼坐</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="../_common/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="app-container map-page-container">
+        <div class="page-header map-header">
+            <button class="btn-back" onclick="cancelSelect()">
+                <span>‹</span>
+            </button>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索地址、地点" autocomplete="off" />
+                <button class="btn-clear-search" id="btnClearSearch" onclick="clearSearch()">&times;</button>
+            </div>
+            <div class="placeholder"></div>
+        </div>
+
+        <div id="mapContainer" class="map-container"></div>
+
+        <div id="addressListPanel" class="address-list-panel hidden">
+            <div class="address-list-header">
+                <span id="searchResultCount">搜索结果</span>
+                <button class="btn-collapse-list" onclick="toggleAddressList()">▼</button>
+            </div>
+            <div class="address-list" id="addressList">
+            </div>
+        </div>
+
+        <div id="addressInfoPanel" class="address-info-panel hidden">
+            <div class="address-info-content">
+                <div class="address-icon">📍</div>
+                <div class="address-text">
+                    <div class="address-name" id="selectedAddressName">正在获取地址...</div>
+                    <div class="address-detail" id="selectedAddressDetail">-</div>
+                </div>
+                <button class="btn btn-primary btn-select-address" onclick="confirmSelect()">
+                    选择此地址
+                </button>
+            </div>
+        </div>
+
+        <div class="map-center-marker" id="mapCenterMarker">
+            <div class="pin"></div>
+            <div class="pin-shadow"></div>
+        </div>
+
+        <div class="map-zoom-controls" id="mapZoomControls">
+            <button class="zoom-btn" id="zoomOutBtn" title="缩小">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+            <div class="zoom-divider"></div>
+            <button class="zoom-btn" id="zoomInBtn" title="放大">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 3V13M3 8H13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="modal" id="addressRemarkModal">
+        <div class="modal-content remark-modal">
+            <div class="modal-header">
+                <h3 id="remarkModalTitle">添加备注</h3>
+                <button class="modal-close" onclick="closeRemarkModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="remark-form">
+                    <div class="form-group">
+                        <label for="addressName">地址名称</label>
+                        <input type="text" id="addressName" placeholder="例如：我家、公司、学校" />
+                    </div>
+                    <div class="form-group">
+                        <label for="addressRemark">地址详情</label>
+                        <input type="text" id="addressRemark" placeholder="例如：XX小区3号楼2单元101室" readonly />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeRemarkModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitRemark()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

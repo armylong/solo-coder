@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Catcher</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>API Catcher</h2>
+            </div>
+            <div class="sidebar-content">
+                <div class="sidebar-item overview-item active" data-type="overview">
+                    <span class="icon">📡</span>
+                    <span class="text">实时监控</span>
+                </div>
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-item" data-type="history">
+                    <span class="icon">📜</span>
+                    <span class="text">历史记录</span>
+                </div>
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section">
+                    <div class="sidebar-section-header">日期选择</div>
+                    <input type="date" id="datePicker" class="date-picker">
+                </div>
+            </div>
+        </aside>
+        <main class="main-content">
+            <div id="overviewPanel" class="panel active">
+                <div class="panel-header">
+                    <h2>实时监控</h2>
+                </div>
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <span class="stat-label">今日抓取</span>
+                        <span class="stat-value" id="todayCount">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">最新ID</span>
+                        <span class="stat-value" id="lastId">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">更新时间</span>
+                        <span class="stat-value" id="updateTime">-</span>
+                    </div>
+                </div>
+                <div class="api-list-container">
+                    <div class="api-list" id="apiList"></div>
+                </div>
+            </div>
+            <div id="historyPanel" class="panel">
+                <div class="panel-header">
+                    <h2>历史记录</h2>
+                    <div class="panel-actions">
+                        <button class="btn btn-secondary" id="refreshHistory">
+                            <span class="btn-icon">🔄</span>
+                            刷新
+                        </button>
+                    </div>
+                </div>
+                <div class="history-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>接口</th>
+                                <th>筛选条件</th>
+                                <th>抓取时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody"></tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <div class="pagination-info">
+                        共 <span id="totalRows">0</span> 条记录
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" id="prevPage">上一页</button>
+                        <span class="page-info" id="pageInfo">1 / 1</span>
+                        <button class="page-btn" id="nextPage">下一页</button>
+                    </div>
+                </div>
+            </div>
+            <div id="detailPanel" class="panel">
+                <div class="panel-header">
+                    <h2>详情 - <span id="detailId">-</span></h2>
+                    <div class="panel-actions">
+                        <button class="btn btn-secondary" id="backToList">
+                            <span class="btn-icon">←</span>
+                            返回
+                        </button>
+                        <button class="btn btn-danger" id="deleteRecord">
+                            <span class="btn-icon">🗑</span>
+                            删除
+                        </button>
+                    </div>
+                </div>
+                <div class="detail-container">
+                    <div class="detail-section">
+                        <h3>筛选条件</h3>
+                        <div class="filter-tags" id="filterTags"></div>
+                    </div>
+                    <div class="detail-section">
+                        <h3>接口列表</h3>
+                        <div class="api-detail-list" id="apiDetailList"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+    <div class="api-detail-modal" id="apiDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>接口详情</h3>
+                <button class="modal-close" onclick="closeApiDetailModal()">×</button>
+            </div>
+            <div class="modal-body" id="apiDetailModalBody"></div>
+        </div>
+    </div>
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拼拼坐 - 本地化拼车系统</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="_common/tab-nav.css">
+    <link rel="stylesheet" href="/static/_common/login-modal.css">
+    <link rel="stylesheet" href="_common/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <main class="main-content" id="mainContent">
+            <div class="order-card" id="orderCard">
+                <div class="order-card-steps">
+                    <div class="order-card-step step1-compact" id="step1">
+                        <div class="compact-row" id="compactRow">
+                            <span class="compact-icon">📍</span>
+                            <span class="compact-text" id="startText">从哪出发？</span>
+                            <span class="compact-arrow">→</span>
+                            <span class="compact-icon">🏁</span>
+                            <span class="compact-text" id="destText">要去哪？</span>
+                            <button class="compact-btn" id="btnNext" disabled>下一步</button>
+                        </div>
+                    </div>
+
+                    <div class="order-card-step hidden" id="step2">
+                        <div class="order-card-body">
+                            <div class="time-type-row" id="timeTypeRow">
+                                <span class="time-type-label" id="timeTypeLabel">按时出发</span>
+                                <span class="time-type-switch">▾</span>
+                            </div>
+
+                            <div class="time-row" id="timeRow">
+                                <span class="time-icon">🕐</span>
+                                <span class="time-text" id="timeText">选择出发时间</span>
+                                <span class="time-arrow">›</span>
+                            </div>
+
+                            <div class="time-flex-row" id="timeFlexRow">
+                                <span class="time-flex-icon">⏱</span>
+                                <span class="time-flex-text" id="timeFlexText">最多等30分钟</span>
+                                <span class="time-flex-arrow">›</span>
+                            </div>
+                        </div>
+
+                        <div class="order-card-footer order-card-footer-double">
+                            <button class="btn-prev" id="btnPrev2">← 上一步</button>
+                            <button class="btn-next" id="btnNext2" disabled>下一步 →</button>
+                        </div>
+                    </div>
+
+                    <div class="order-card-step hidden" id="step3">
+                        <div class="order-card-body">
+                            <div class="passenger-title">👤 几个人乘车</div>
+                            <div class="passenger-options" id="passengerOptions">
+                                <div class="passenger-option" data-count="1">1人</div>
+                                <div class="passenger-option" data-count="2">2人</div>
+                                <div class="passenger-option" data-count="3">3人</div>
+                                <div class="passenger-option" data-count="4">4人</div>
+                                <div class="passenger-option" data-count="5">5人</div>
+                                <div class="passenger-option" data-count="6">6人</div>
+                            </div>
+                            <div class="charter-row" id="charterRow">
+                                <span class="charter-checkbox" id="charterCheckbox"></span>
+                                <span class="charter-label">包车（独享整车）</span>
+                            </div>
+                        </div>
+
+                        <div class="order-card-footer order-card-footer-double">
+                            <button class="btn-prev" id="btnPrev3">← 上一步</button>
+                            <button class="btn-next btn-submit" id="btnSubmit" disabled>确认拼车</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="trip-section hidden" id="matchingSection">
+                <div class="trip-section-title">匹配中</div>
+                <div class="trip-list" id="matchingList"></div>
+            </div>
+
+            <div class="trip-section" id="tripSection">
+                <div class="trip-section-title">我的行程</div>
+                <div class="trip-list" id="tripList"></div>
+            </div>
+        </main>
+
+        <nav class="tab-nav" id="tabNav"></nav>
+    </div>
+
+    <div class="address-picker-overlay" id="addressPickerOverlay">
+        <div class="address-picker" id="addressPicker">
+            <div class="address-picker-handle"></div>
+            <div class="address-picker-header">
+                <span id="addressPickerTitle">选择出发地</span>
+            </div>
+            <div class="address-picker-search">
+                <input type="text" id="addressSearchInput" placeholder="搜索地址" autocomplete="off">
+                <button class="search-clear hidden" id="searchClearBtn">✕</button>
+            </div>
+            <div class="address-picker-scroll" id="addressPickerScroll">
+                <div class="address-picker-list" id="addressPickerList"></div>
+            </div>
+            <div class="address-picker-bottom">
+                <div class="address-picker-map-btn" id="mapSelectBtn">
+                    <span>🗺️</span>
+                    <span>从地图选择</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="picker-overlay" id="timePickerOverlay">
+        <div class="picker-popup" id="timePickerPopup">
+            <div class="picker-handle"></div>
+            <div class="picker-header">
+                <span id="timePickerTitle">选择出发时间</span>
+                <button class="picker-confirm" id="timePickerConfirm">确定</button>
+            </div>
+            <div class="picker-wheels" id="timePickerWheels">
+                <div class="picker-wheel" id="wheelDate"></div>
+                <div class="picker-wheel" id="wheelHour"></div>
+                <div class="picker-wheel" id="wheelMinute"></div>
+            </div>
+            <div class="picker-wheel-labels">
+                <span></span>
+                <span>时</span>
+                <span>分</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="picker-overlay" id="timeTypeOverlay">
+        <div class="picker-popup picker-popup-small" id="timeTypePopup">
+            <div class="picker-handle"></div>
+            <div class="picker-header">
+                <span>时间类型</span>
+            </div>
+            <div class="picker-options" id="timeTypeOptions">
+                <div class="picker-option selected" data-value="1">按时出发</div>
+                <div class="picker-option" data-value="2">按时到达</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="picker-overlay" id="timeFlexOverlay">
+        <div class="picker-popup picker-popup-small" id="timeFlexPopup">
+            <div class="picker-handle"></div>
+            <div class="picker-header">
+                <span id="timeFlexTitle">弹性时间</span>
+            </div>
+            <div class="picker-options" id="timeFlexOptions">
+                <div class="picker-option selected" data-value="10">10分钟</div>
+                <div class="picker-option" data-value="30">30分钟</div>
+                <div class="picker-option" data-value="60">1小时</div>
+                <div class="picker-option" data-value="180">3小时</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

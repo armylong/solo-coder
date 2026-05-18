@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>车辆审核 - 拼拼坐后台管理系统</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="/static/_common/login-modal.css">
+    <link rel="stylesheet" href="../_index/css/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="main-content">
+            <div class="page-content active">
+                <div class="page-header">
+                    <h2>车辆审核</h2>
+                    <button class="btn btn-primary" onclick="refreshAll()">
+                        <span>🔄</span> 刷新
+                    </button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper pending" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            <span class="stat-icon">⏳</span>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">待审核</div>
+                            <div class="stat-value" id="pendingCount">-</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper approved">
+                            <span class="stat-icon">✅</span>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">已通过</div>
+                            <div class="stat-value" id="approvedCount">-</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper rejected" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                            <span class="stat-icon">❌</span>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-label">已驳回</div>
+                            <div class="stat-value" id="rejectedCount">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-nav">
+                    <div class="tab-item active" data-tab="pending" onclick="switchTab('pending')">
+                        待审核<span class="tab-count" id="tabPendingCount">0</span>
+                    </div>
+                    <div class="tab-item" data-tab="rejected" onclick="switchTab('rejected')">
+                        已驳回<span class="tab-count" id="tabRejectedCount">0</span>
+                    </div>
+                    <div class="tab-item" data-tab="approved" onclick="switchTab('approved')">
+                        已通过<span class="tab-count" id="tabApprovedCount">0</span>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <div class="filter-row">
+                        <div class="filter-item">
+                            <label>用户ID</label>
+                            <input type="number" id="filterUid" placeholder="请输入用户ID">
+                        </div>
+                        <div class="filter-item">
+                            <label>账号</label>
+                            <input type="text" id="filterAccount" placeholder="请输入账号">
+                        </div>
+                        <div class="filter-item">
+                            <label>姓名</label>
+                            <input type="text" id="filterName" placeholder="请输入姓名">
+                        </div>
+                        <div class="filter-item">
+                            <label>手机号</label>
+                            <input type="text" id="filterPhone" placeholder="请输入手机号">
+                        </div>
+                        <div class="filter-actions">
+                            <button class="btn btn-primary" onclick="applyFilters()">搜索</button>
+                            <button class="btn btn-secondary" onclick="resetFilters()">重置</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-section">
+                    <div id="auditListContainer">
+                    </div>
+                    <div class="pagination">
+                        <div class="pagination-info">
+                            共 <span id="totalAuditCount">0</span> 条记录
+                        </div>
+                        <div class="pagination-controls">
+                            <button class="page-btn" id="prevAuditPage" onclick="prevAuditPage()">
+                                <span>‹</span>
+                            </button>
+                            <div class="page-numbers" id="auditPageNumbers"></div>
+                            <button class="page-btn" id="nextAuditPage" onclick="nextAuditPage()">
+                                <span>›</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal audit-detail-modal" id="auditDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>车辆审核详情</h3>
+                <button class="modal-close" onclick="closeAuditDetailModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="auditDetailContent">
+            </div>
+        </div>
+    </div>
+
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+.add-car-page {
+    min-height: calc(100vh - 70px);
+}
+
+.add-car-content {
+    padding: 20px 16px;
+}
+
+.add-car-form {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.add-car-form .form-group {
+    margin-bottom: 20px;
+}
+
+.add-car-form .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #333;
+}
+
+.required {
+    color: #dc2626;
+}
+
+.add-car-form .form-group input,
+.add-car-form .form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background-color: #fafafa;
+}
+
+.add-car-form .form-group input:focus,
+.add-car-form .form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.add-car-form .form-group input::placeholder,
+.add-car-form .form-group textarea::placeholder {
+    color: #bbb;
+}
+
+.add-car-form .form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.license-plate-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    background-color: #fafafa;
+    cursor: pointer;
+    min-height: 46px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+.license-plate-input:active {
+    border-color: #667eea;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.license-plate-input .lp-placeholder {
+    color: #bbb;
+    font-weight: 400;
+    font-size: 16px;
+    letter-spacing: 0;
+}
+
+.license-plate-input .lp-value {
+    color: #333;
+}

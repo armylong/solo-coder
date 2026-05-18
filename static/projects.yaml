@@ -1,0 +1,125 @@
+api-catcher:
+  name_cn: API抓包工具
+  type: app
+  permission: user
+  desc: 接口抓包与调试工具
+
+long-doc:
+  name_cn: Markdown知识库
+  type: app
+  permission: user
+  desc: Markdown文档管理与知识库
+
+long-store:
+  name_cn: 应用商店
+  type: app
+  permission: user
+  desc: 应用导航与商店
+
+monitor:
+  name_cn: 系统监控
+  type: app
+  permission: super
+  desc: 服务器系统监控面板
+
+ppz-admin:
+  name_cn: 拼拼坐后台
+  type: app
+  permission: admin
+  desc: 拼拼坐管理后台
+
+ppz-m:
+  name_cn: 拼拼坐
+  type: app
+  permission: user
+  desc: 拼拼坐用户端
+
+sqlite-manager:
+  name_cn: SQLite管理
+  type: app
+  permission: super
+  desc: SQLite数据库管理工具
+
+user-management:
+  name_cn: 用户管理
+  type: app
+  permission: admin
+  desc: 用户权限与账号管理
+
+yangfen:
+  name_cn: 氧分系统
+  type: app
+  permission: user
+  desc: 氧分积分系统
+
+baohuang:
+  name_cn: 保皇
+  type: game
+  permission: user
+  desc: 山东保皇扑克牌游戏
+
+chinese-chess:
+  name_cn: 中国象棋
+  type: game
+  permission: user
+  desc: 经典中国象棋对弈
+
+doudizhu:
+  name_cn: 斗地主
+  type: game
+  permission: user
+  desc: 经典斗地主扑克牌游戏
+
+fish-eater:
+  name_cn: 大鱼吃小鱼
+  type: game
+  permission: user
+  desc: 大鱼吃小鱼休闲游戏
+
+go:
+  name_cn: 围棋
+  type: game
+  permission: user
+  desc: 经典围棋对弈
+
+gomoku:
+  name_cn: 五子棋
+  type: game
+  permission: user
+  desc: 五子棋对弈游戏
+
+gouji:
+  name_cn: 勾鸡
+  type: game
+  permission: user
+  desc: 山东勾鸡扑克牌游戏
+
+snake:
+  name_cn: 贪吃蛇
+  type: game
+  permission: user
+  desc: 经典贪吃蛇游戏
+
+tetris:
+  name_cn: 俄罗斯方块
+  type: game
+  permission: user
+  desc: 经典俄罗斯方块游戏
+
+earth-viewer:
+  name_cn: 3D地球查看器
+  type: app
+  permission: user
+  desc: Three.js 3D地球展示
+
+lottery:
+  name_cn: 年会抽奖
+  type: app
+  permission: user
+  desc: 年会抽奖转盘
+
+solar-system:
+  name_cn: 太阳系模拟
+  type: app
+  permission: user
+  desc: Three.js 太阳系3D模拟

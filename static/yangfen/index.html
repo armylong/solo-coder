@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>氧分系统测试</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🫁 氧分系统</h1>
+            <div class="uid-input">
+                <div class="uid-display">
+                    用户ID: <span id="uidDisplay">-</span>
+                </div>
+                <div class="balance-display">
+                    当前余额: <span id="currentBalance">-</span> 氧分
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>💰 充值</h2>
+                <div class="form-group">
+                    <label>充值金额</label>
+                    <input type="number" id="rechargeAmount" placeholder="输入充值金额" min="1">
+                </div>
+                <div class="form-group">
+                    <label>过期时间(秒)</label>
+                    <input type="number" id="expireSec" placeholder="过期秒数" value="86400">
+                </div>
+                <button class="btn btn-success" onclick="recharge()">充值</button>
+                <div class="quick-actions">
+                    <button class="btn quick-btn btn-secondary" onclick="quickRecharge(50)">+50</button>
+                    <button class="btn quick-btn btn-secondary" onclick="quickRecharge(100)">+100</button>
+                    <button class="btn quick-btn btn-secondary" onclick="quickRecharge(500)">+500</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🛒 消费</h2>
+                <div class="form-group">
+                    <label>消费金额</label>
+                    <input type="number" id="consumeAmount" placeholder="输入消费金额" min="1">
+                </div>
+                <button class="btn btn-warning" onclick="consume()">消费</button>
+                <div class="quick-actions">
+                    <button class="btn quick-btn btn-secondary" onclick="quickConsume(10)">-10</button>
+                    <button class="btn quick-btn btn-secondary" onclick="quickConsume(50)">-50</button>
+                    <button class="btn quick-btn btn-secondary" onclick="quickConsume(100)">-100</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🔄 转账</h2>
+                <div class="form-group">
+                    <label>目标用户ID</label>
+                    <input type="text" id="toUid" placeholder="输入目标用户ID">
+                </div>
+                <div class="form-group">
+                    <label>转账金额</label>
+                    <input type="number" id="transferAmount" placeholder="输入转账金额" min="1">
+                </div>
+                <button class="btn btn-info" onclick="transfer()">转账</button>
+            </div>
+
+            <div class="card">
+                <h2>🔙 退款</h2>
+                <div class="form-group">
+                    <label>交易号</label>
+                    <input type="text" id="transactionId" placeholder="输入要退款的交易号">
+                </div>
+                <button class="btn btn-primary" onclick="refund()">退款</button>
+                <p style="margin-top: 10px; font-size: 12px; color: #888;">
+                    提示: 只能退款消费类型的交易,在下方交易记录中点击退款按钮可快速操作
+                </p>
+            </div>
+
+            <div class="card transactions">
+                <h2>📋 交易记录</h2>
+                <div class="transaction-list" id="transactionList">
+                    <div class="empty-state">暂无交易记录</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-panel" id="resultPanel" style="display: none;"></div>
+    </div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>
