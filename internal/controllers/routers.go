@@ -6,12 +6,12 @@ import (
 
 	apiCatcherController "github.com/armylong/armylong-go/internal/controllers/api_catcher"
 	gaodeController "github.com/armylong/armylong-go/internal/controllers/gaode"
-	sessionDataController "github.com/armylong/armylong-go/internal/controllers/session_data"
 	"github.com/armylong/armylong-go/internal/controllers/index"
 	longDocController "github.com/armylong/armylong-go/internal/controllers/long_doc"
 	longStoreController "github.com/armylong/armylong-go/internal/controllers/long_store"
 	monitorController "github.com/armylong/armylong-go/internal/controllers/monitor"
 	ppzController "github.com/armylong/armylong-go/internal/controllers/ppz"
+	sessionDataController "github.com/armylong/armylong-go/internal/controllers/session_data"
 	"github.com/armylong/armylong-go/internal/controllers/settings"
 	"github.com/armylong/armylong-go/internal/controllers/sqlite_long"
 	userController "github.com/armylong/armylong-go/internal/controllers/user"
@@ -36,6 +36,11 @@ func RegisterRouters(engine *gin.Engine) {
 	})
 
 	// ==================== 无需登录 ====================
+	// 打印hello world
+	engine.GET("/hello", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, longgin.Success(nil, `hello world`))
+	})
+
 	authGroup := engine.Group("/auth")
 	longgin.RegisterJsonController(authGroup, &userController.AuthController{})
 
