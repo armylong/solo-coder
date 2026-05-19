@@ -40,9 +40,6 @@ func Login(req *LoginRequest) (*LoginResponse, error) {
 		return nil, errors.New("生成Token失败")
 	}
 
-	// 同设备踢掉旧Token
-	user.TbUserTokenModel.DeleteByUidAndDeviceType(u.Uid, deviceType)
-
 	tokenRecord := &user.TbUserToken{
 		Uid:        u.Uid,
 		Token:      token,
@@ -50,6 +47,9 @@ func Login(req *LoginRequest) (*LoginResponse, error) {
 		ExpireAt:   expireAt,
 	}
 	user.TbUserTokenModel.Create(tokenRecord)
+
+	// 同设备踢掉旧Token
+	user.TbUserTokenModel.DeleteByUidAndDeviceType(u.Uid, deviceType)
 
 	middlewares.SetCache(token, &middlewares.LoginUserInfo{
 		TbUser:         u,

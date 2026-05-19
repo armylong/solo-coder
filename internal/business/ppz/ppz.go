@@ -90,7 +90,7 @@ func (b *ppzBusiness) GetMyCarDetail(ctx context.Context, uid int64, req *ppzCs.
 	} else if req.CarId > 0 {
 		audit, err = ppzModel.TbPpzCarAuditModel.GetByUidAndCarId(uid, req.CarId)
 		if err != nil || audit == nil {
-			car, err := ppzModel.TbPpzCarsModel.GetByUidAndId(uid, req.CarId)
+			car, err := ppzModel.TbPpzCarsModel.GetById(req.CarId)
 			if err != nil || car == nil {
 				return nil, fmt.Errorf("车辆不存在: %w", err)
 			}
