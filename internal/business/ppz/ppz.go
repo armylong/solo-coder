@@ -84,15 +84,15 @@ func (b *ppzBusiness) GetMyCarDetail(ctx context.Context, uid int64, req *ppzCs.
 
 	if req.AuditId > 0 {
 		audit, err = ppzModel.TbPpzCarAuditModel.GetByUidAndId(uid, req.AuditId)
-		if err != nil || audit == nil {
+		if err != nil || audit == nil || audit.Uid != uid {
 			return nil, errors.New("车辆不存在或无权限查看")
 		}
 	} else if req.CarId > 0 {
 		audit, err = ppzModel.TbPpzCarAuditModel.GetByUidAndCarId(uid, req.CarId)
-		if err != nil || audit == nil {
+		if err != nil || audit == nil || audit.Uid != uid {
 			car, err := ppzModel.TbPpzCarsModel.GetByUidAndId(uid, req.CarId)
-			if err != nil || car == nil {
-				return nil, fmt.Errorf("车辆不存在: %w", err)
+			if err != nil || car == nil || car.Uid != uid {
+				return nil, errors.New("车辆不存在或无权限查看")
 			}
 			return &ppzCs.GetCarDetailResponse{
 				Car: &ppzCs.CarAuditDetail{

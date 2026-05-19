@@ -193,8 +193,8 @@ func (b *userBusiness) UpdateAdmin(ctx context.Context, req *UpdateAdminRequest)
 		return err
 	}
 
-	_, err := user.TbUserModel.GetByUid(req.Uid)
-	if err != nil || err != nil {
+	u, err := user.TbUserModel.GetByUid(req.Uid)
+	if err != nil || u == nil {
 		return errors.New("用户不存在")
 	}
 

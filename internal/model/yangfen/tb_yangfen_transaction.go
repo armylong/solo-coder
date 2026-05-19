@@ -25,6 +25,7 @@ type TbYangfenTransaction struct {
 	Balance       int       `json:"balance"`        // 交易后余额
 	Description   string    `json:"description"`    // 交易描述
 	CreatedAt     time.Time `json:"created_at"`
+	RefundFor     string    `json:"refund_for"`     // 退款对应的原交易号（新增字段放末尾兼容）
 }
 
 type tbYangfenTransactionModel struct{}
@@ -50,14 +51,22 @@ func (m *tbYangfenTransactionModel) CreateTable() error {
 		amount INTEGER DEFAULT 0,
 		balance INTEGER DEFAULT 0,
 		description TEXT,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		refund_for TEXT DEFAULT ''
 	)
 	`
 	_, err := sqlite.DB.DB().Exec(sql)
 	if err != nil {
 		return err
 	}
+	_ = m.migrateAddRefundForColumn()
 	return sqlite.DB.AutoMigrate(m.TableName(), &TbYangfenTransaction{})
+}
+
+// 迁移：添加 refund_for 字段（兼容已有表）
+func (m *tbYangfenTransactionModel) migrateAddRefundForColumn() error {
+	_, err := sqlite.DB.DB().Exec(`ALTER TABLE tb_yangfen_transaction ADD COLUMN refund_for TEXT DEFAULT ''`)
+	return err
 }
 
 // 新增交易记录
@@ -85,4 +94,16 @@ func (m *tbYangfenTransactionModel) ListByUid(uid string, limit int) ([]*TbYangf
 // 删除用户所有交易记录
 func (m *tbYangfenTransactionModel) DeleteByUid(uid string) error {
 	return sqlite.DB.DeleteByWhere(m.TableName(), "uid = ?", uid)
+}
+
+// 检查交易是否已退款（优先使用 refund_for 字段，兼容新旧数据）
+func (m *tbYangfenTransactionModel) HasRefunded(transactionId string) (bool, error) {
+	var count int
+	refundDesc := "退款-交易号:" + transactionId
+	sql := `SELECT COUNT(*) FROM tb_yangfen_transaction WHERE type = ? AND (refund_for = ? OR description = ?)`
+	err := sqlite.DB.DB().QueryRow(sql, TxTypeRefund, transactionId, refundDesc).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

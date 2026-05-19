@@ -98,15 +98,19 @@ func (b *yangfenBusiness) Transfer(ctx context.Context, fromUid, toUid string, a
 
 	toRow, _ := yangfenModel.TbYangfenBalanceModel.GetByUid(toUid)
 	toBalance := 0
+	toExpireTime := fromRow.ExpireTime
 	if toRow != nil {
 		toBalance = toRow.Balance
+		if toRow.ExpireTime > fromRow.ExpireTime {
+			toExpireTime = toRow.ExpireTime
+		}
 	}
 
 	newFromBalance := fromRow.Balance - amount
 	newToBalance := toBalance + amount
 
-	yangfenModel.TbYangfenBalanceModel.CreateOrUpdate(fromUid, newFromBalance, 0)
-	yangfenModel.TbYangfenBalanceModel.CreateOrUpdate(toUid, newToBalance, 0)
+	yangfenModel.TbYangfenBalanceModel.CreateOrUpdate(fromUid, newFromBalance, fromRow.ExpireTime)
+	yangfenModel.TbYangfenBalanceModel.CreateOrUpdate(toUid, newToBalance, toExpireTime)
 
 	b.addTransaction(ctx, fromUid, "transfer_out", amount, newFromBalance, fmt.Sprintf("转出给%s", toUid))
 	b.addTransaction(ctx, toUid, "transfer_in", amount, newToBalance, fmt.Sprintf("从%s转入", fromUid))
@@ -120,15 +124,31 @@ func (b *yangfenBusiness) Refund(ctx context.Context, uid string, transactionId 
 		return fmt.Errorf("交易记录不存在")
 	}
 
+	if tx.Uid != uid {
+		return fmt.Errorf("无权操作此交易记录")
+	}
+
 	if tx.Type != "consume" {
 		return fmt.Errorf("只能退款消费记录")
 	}
 
-	balance, _ := b.GetBalance(ctx, uid)
-	newBalance := balance + tx.Amount
-	yangfenModel.TbYangfenBalanceModel.UpdateBalance(uid, newBalance)
+	hasRefunded, err := yangfenModel.TbYangfenTransactionModel.HasRefunded(transactionId)
+	if err != nil {
+		return fmt.Errorf("检查退款状态失败")
+	}
+	if hasRefunded {
+		return fmt.Errorf("该交易已退款，不能重复退款")
+	}
 
-	b.addTransaction(ctx, uid, "refund", tx.Amount, newBalance, fmt.Sprintf("退款-交易号:%s", transactionId))
+	row, err := yangfenModel.TbYangfenBalanceModel.GetByUid(uid)
+	if err != nil {
+		row = &yangfenModel.TbYangfenBalance{Uid: uid, Balance: 0, ExpireTime: 0}
+	}
+
+	newBalance := row.Balance + tx.Amount
+	yangfenModel.TbYangfenBalanceModel.CreateOrUpdate(uid, newBalance, row.ExpireTime)
+
+	b.addRefundTransaction(ctx, uid, tx.Amount, newBalance, transactionId)
 	return nil
 }
 
@@ -163,6 +183,21 @@ func (b *yangfenBusiness) addTransaction(ctx context.Context, uid string, txType
 		Amount:        amount,
 		Balance:       balance,
 		Description:   desc,
+		RefundFor:     "",
+	}
+	yangfenModel.TbYangfenTransactionModel.Create(tx)
+}
+
+// 记一笔退款交易（设置refund_for字段）
+func (b *yangfenBusiness) addRefundTransaction(ctx context.Context, uid string, amount int, balance int, refundFor string) {
+	tx := &yangfenModel.TbYangfenTransaction{
+		TransactionId: fmt.Sprintf("TX%d", time.Now().UnixNano()),
+		Uid:           uid,
+		Type:          "refund",
+		Amount:        amount,
+		Balance:       balance,
+		Description:   fmt.Sprintf("退款-交易号:%s", refundFor),
+		RefundFor:     refundFor,
 	}
 	yangfenModel.TbYangfenTransactionModel.Create(tx)
 }

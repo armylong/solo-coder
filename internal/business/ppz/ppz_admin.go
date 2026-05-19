@@ -208,101 +208,64 @@ func (b *ppzAdminBusiness) UnbanDriver(ctx context.Context, req *ppzCs.UnbanDriv
 	return nil, nil
 }
 
-// 车辆详情
+// 车辆详情（后台管理专用，管理员可查看所有车辆）
 func (b *ppzAdminBusiness) GetCarDetail(ctx context.Context, req *ppzCs.GetCarDetailRequest) (*ppzCs.GetCarDetailResponse, error) {
-	var audit *ppzModel.TbPpzCarAudit
-	var err error
-
 	if req.AuditId > 0 {
-		audit, err = ppzModel.TbPpzCarAuditModel.GetById(req.AuditId)
+		audit, err := ppzModel.TbPpzCarAuditModel.GetById(req.AuditId)
 		if err != nil || audit == nil {
-			if req.CarId > 0 {
-				audit, err = ppzModel.TbPpzCarAuditModel.GetByUidAndCarId(0, req.CarId)
-				if err != nil || audit == nil {
-					car, err := ppzModel.TbPpzCarsModel.GetById(req.CarId)
-					if err != nil || car == nil {
-						return nil, fmt.Errorf("车辆不存在: %w", err)
-					}
-					return &ppzCs.GetCarDetailResponse{
-						Car: &ppzCs.CarAuditDetail{
-							AuditId:            0,
-							CarId:              car.CarId,
-							Uid:                car.Uid,
-							CarModel:           car.CarModel,
-							CarLicensePhoto:    car.CarLicensePhoto,
-							DriverLicensePhoto: car.DriverLicensePhoto,
-							LicensePlate:       car.LicensePlate,
-							CarColor:           car.CarColor,
-							Seats:              car.Seats,
-							CarPhoto:           car.CarPhoto,
-							Description:        car.Description,
-							AuditStatus:        2,
-							ReviewStatus:       2,
-							AuditData:          nil,
-							CreatedAt:          car.CreatedAt,
-							UpdatedAt:          car.UpdatedAt,
-						},
-					}, nil
-				}
-			} else {
-				return nil, errors.New("车辆不存在或无权限查看")
-			}
+			return nil, errors.New("审核记录不存在")
 		}
-	} else if req.CarId > 0 {
-		audit, err = ppzModel.TbPpzCarAuditModel.GetByUidAndCarId(0, req.CarId)
-		if err != nil || audit == nil {
-			car, err := ppzModel.TbPpzCarsModel.GetById(req.CarId)
-			if err != nil || car == nil {
-				return nil, fmt.Errorf("车辆不存在: %w", err)
-			}
-			return &ppzCs.GetCarDetailResponse{
-				Car: &ppzCs.CarAuditDetail{
-					AuditId:            0,
-					CarId:              car.CarId,
-					Uid:                car.Uid,
-					CarModel:           car.CarModel,
-					CarLicensePhoto:    car.CarLicensePhoto,
-					DriverLicensePhoto: car.DriverLicensePhoto,
-					LicensePlate:       car.LicensePlate,
-					CarColor:           car.CarColor,
-					Seats:              car.Seats,
-					CarPhoto:           car.CarPhoto,
-					Description:        car.Description,
-					AuditStatus:        2,
-					ReviewStatus:       2,
-					AuditData:          nil,
-					CreatedAt:          car.CreatedAt,
-					UpdatedAt:          car.UpdatedAt,
-				},
-			}, nil
-		}
-	} else {
-		return nil, errors.New("请提供车辆ID或审核ID")
+		return &ppzCs.GetCarDetailResponse{
+			Car: &ppzCs.CarAuditDetail{
+				AuditId:            audit.AuditId,
+				CarId:              audit.CarId,
+				Uid:                audit.Uid,
+				CarModel:           audit.AuditData.CarModel,
+				CarLicensePhoto:    audit.AuditData.CarLicensePhoto,
+				DriverLicensePhoto: audit.AuditData.DriverLicensePhoto,
+				LicensePlate:       audit.AuditData.LicensePlate,
+				CarColor:           audit.AuditData.CarColor,
+				Seats:              audit.AuditData.Seats,
+				CarPhoto:           audit.AuditData.CarPhoto,
+				Description:        audit.AuditData.Description,
+				AuditStatus:        audit.AuditStatus,
+				ReviewStatus:       audit.AuditStatus,
+				AuditReason:        audit.AuditReason,
+				AuditData:          audit.AuditData,
+				CreatedAt:          audit.CreatedAt,
+				UpdatedAt:          audit.UpdatedAt,
+			},
+		}, nil
 	}
 
-	carDetail := &ppzCs.CarAuditDetail{
-		AuditId:            audit.AuditId,
-		CarId:              audit.CarId,
-		Uid:                audit.Uid,
-		CarModel:           audit.AuditData.CarModel,
-		CarLicensePhoto:    audit.AuditData.CarLicensePhoto,
-		DriverLicensePhoto: audit.AuditData.DriverLicensePhoto,
-		LicensePlate:       audit.AuditData.LicensePlate,
-		CarColor:           audit.AuditData.CarColor,
-		Seats:              audit.AuditData.Seats,
-		CarPhoto:           audit.AuditData.CarPhoto,
-		Description:        audit.AuditData.Description,
-		AuditStatus:        audit.AuditStatus,
-		ReviewStatus:       audit.AuditStatus,
-		AuditReason:        audit.AuditReason,
-		AuditData:          audit.AuditData,
-		CreatedAt:          audit.CreatedAt,
-		UpdatedAt:          audit.UpdatedAt,
+	if req.CarId > 0 {
+		car, err := ppzModel.TbPpzCarsModel.GetById(req.CarId)
+		if err != nil || car == nil {
+			return nil, errors.New("车辆不存在")
+		}
+		return &ppzCs.GetCarDetailResponse{
+			Car: &ppzCs.CarAuditDetail{
+				AuditId:            0,
+				CarId:              car.CarId,
+				Uid:                car.Uid,
+				CarModel:           car.CarModel,
+				CarLicensePhoto:    car.CarLicensePhoto,
+				DriverLicensePhoto: car.DriverLicensePhoto,
+				LicensePlate:       car.LicensePlate,
+				CarColor:           car.CarColor,
+				Seats:              car.Seats,
+				CarPhoto:           car.CarPhoto,
+				Description:        car.Description,
+				AuditStatus:        2,
+				ReviewStatus:       2,
+				AuditData:          nil,
+				CreatedAt:          car.CreatedAt,
+				UpdatedAt:          car.UpdatedAt,
+			},
+		}, nil
 	}
 
-	return &ppzCs.GetCarDetailResponse{
-		Car: carDetail,
-	}, nil
+	return nil, errors.New("请提供车辆ID或审核ID")
 }
 
 // 审核通过（不带原因）
