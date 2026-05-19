@@ -8,11 +8,11 @@ import (
 
 // 交易类型
 const (
-	TxTypeRecharge     = "recharge"     // 充值
-	TxTypeConsume      = "consume"      // 消费
-	TxTypeTransferOut  = "transfer_out" // 转出
-	TxTypeTransferIn   = "transfer_in"  // 转入
-	TxTypeRefund       = "refund"       // 退款
+	TxTypeRecharge    = "recharge"     // 充值
+	TxTypeConsume     = "consume"      // 消费
+	TxTypeTransferOut = "transfer_out" // 转出
+	TxTypeTransferIn  = "transfer_in"  // 转入
+	TxTypeRefund      = "refund"       // 退款
 )
 
 // 氧分交易记录
@@ -67,19 +67,33 @@ func (m *tbYangfenTransactionModel) Create(tx *TbYangfenTransaction) (int64, err
 
 // 按交易号查
 func (m *tbYangfenTransactionModel) GetByTransactionId(transactionId string) (*TbYangfenTransaction, error) {
-	var row TbYangfenTransaction
-	err := sqlite.DB.FindOne(m.TableName(), &row, "transaction_id = ?", transactionId)
+	row := &TbYangfenTransaction{}
+	err := sqlite.DB.DB().QueryRow("SELECT id, transaction_id, uid, type, amount, balance, description, created_at FROM tb_yangfen_transaction WHERE transaction_id = ?", transactionId).Scan(
+		&row.ID, &row.TransactionId, &row.Uid, &row.Type, &row.Amount, &row.Balance, &row.Description, &row.CreatedAt)
 	if err != nil {
 		return nil, err
 	}
-	return &row, nil
+	return row, nil
 }
 
 // 按用户查交易列表
 func (m *tbYangfenTransactionModel) ListByUid(uid string, limit int) ([]*TbYangfenTransaction, error) {
+	rows, err := sqlite.DB.DB().Query("SELECT id, transaction_id, uid, type, amount, balance, description, created_at FROM tb_yangfen_transaction WHERE uid = ? ORDER BY id DESC LIMIT ?", uid, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
 	var transactions []*TbYangfenTransaction
-	err := sqlite.DB.Find(m.TableName(), &transactions, "uid = ? ORDER BY id DESC LIMIT ?", uid, limit)
-	return transactions, err
+	for rows.Next() {
+		tx := &TbYangfenTransaction{}
+		err := rows.Scan(&tx.ID, &tx.TransactionId, &tx.Uid, &tx.Type, &tx.Amount, &tx.Balance, &tx.Description, &tx.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, tx)
+	}
+	return transactions, nil
 }
 
 // 删除用户所有交易记录

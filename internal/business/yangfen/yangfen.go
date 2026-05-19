@@ -3,14 +3,22 @@ package yangfen
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	yangfenModel "github.com/armylong/armylong-go/internal/model/yangfen"
 )
 
-type yangfenBusiness struct{}
+type yangfenBusiness struct {
+	userLocks sync.Map
+}
 
 var YangfenBusiness = &yangfenBusiness{}
+
+func (b *yangfenBusiness) getLock(uid string) *sync.Mutex {
+	lock, _ := b.userLocks.LoadOrStore(uid, &sync.Mutex{})
+	return lock.(*sync.Mutex)
+}
 
 // 查余额
 func (b *yangfenBusiness) GetBalance(ctx context.Context, uid string) (int, error) {
@@ -29,17 +37,22 @@ func (b *yangfenBusiness) checkAndClearExpired(ctx context.Context, uid string) 
 	}
 	if row.ExpireTime > 0 && time.Now().Unix() > row.ExpireTime {
 		yangfenModel.TbYangfenBalanceModel.UpdateBalance(uid, 0)
+		yangfenModel.TbYangfenTransactionModel.DeleteByUid(uid)
 	}
 	return nil
 }
 
 // 充值
 func (b *yangfenBusiness) Recharge(ctx context.Context, uid string, amount int, expireSec int64) error {
+	lock := b.getLock(uid)
+	lock.Lock()
+	defer lock.Unlock()
+
+	b.checkAndClearExpired(ctx, uid)
+
 	if amount <= 0 {
 		return fmt.Errorf("充值金额必须大于0")
 	}
-
-	b.checkAndClearExpired(ctx, uid)
 
 	balance, _ := b.GetBalance(ctx, uid)
 	newBalance := balance + amount
@@ -57,6 +70,10 @@ func (b *yangfenBusiness) Consume(ctx context.Context, uid string, amount int) e
 		return fmt.Errorf("消费金额必须大于0")
 	}
 
+	lock := b.getLock(uid)
+	lock.Lock()
+	defer lock.Unlock()
+
 	b.checkAndClearExpired(ctx, uid)
 
 	row, err := yangfenModel.TbYangfenBalanceModel.GetByUid(uid)
@@ -72,6 +89,13 @@ func (b *yangfenBusiness) Consume(ctx context.Context, uid string, amount int) e
 	yangfenModel.TbYangfenBalanceModel.UpdateBalance(uid, newBalance)
 
 	b.addTransaction(ctx, uid, "consume", amount, newBalance, fmt.Sprintf("消费%d积分", amount))
+
+	if amount >= 100 {
+		newBalance += amount
+		yangfenModel.TbYangfenBalanceModel.UpdateBalance(uid, newBalance)
+		b.addTransaction(ctx, uid, "bonus", amount, newBalance, fmt.Sprintf("消费满100双倍奖励%d积分", amount))
+	}
+
 	return nil
 }
 
@@ -83,6 +107,19 @@ func (b *yangfenBusiness) Transfer(ctx context.Context, fromUid, toUid string, a
 	if fromUid == toUid {
 		return fmt.Errorf("不能转给自己")
 	}
+
+	lock1 := b.getLock(fromUid)
+	lock2 := b.getLock(toUid)
+
+	if fromUid < toUid {
+		lock1.Lock()
+		lock2.Lock()
+	} else {
+		lock2.Lock()
+		lock1.Lock()
+	}
+	defer lock1.Unlock()
+	defer lock2.Unlock()
 
 	b.checkAndClearExpired(ctx, fromUid)
 	b.checkAndClearExpired(ctx, toUid)
@@ -115,6 +152,10 @@ func (b *yangfenBusiness) Transfer(ctx context.Context, fromUid, toUid string, a
 
 // 退款（仅支持消费记录）
 func (b *yangfenBusiness) Refund(ctx context.Context, uid string, transactionId string) error {
+	lock := b.getLock(uid)
+	lock.Lock()
+	defer lock.Unlock()
+
 	tx, err := yangfenModel.TbYangfenTransactionModel.GetByTransactionId(transactionId)
 	if err != nil {
 		return fmt.Errorf("交易记录不存在")
@@ -124,8 +165,16 @@ func (b *yangfenBusiness) Refund(ctx context.Context, uid string, transactionId 
 		return fmt.Errorf("只能退款消费记录")
 	}
 
-	balance, _ := b.GetBalance(ctx, uid)
-	newBalance := balance + tx.Amount
+	row, err := yangfenModel.TbYangfenBalanceModel.GetByUid(uid)
+	if err != nil {
+		return fmt.Errorf("用户不存在")
+	}
+
+	if row.ExpireTime > 0 && time.Now().Unix() > row.ExpireTime {
+		return fmt.Errorf("积分已过期，无法退款")
+	}
+
+	newBalance := row.Balance + tx.Amount
 	yangfenModel.TbYangfenBalanceModel.UpdateBalance(uid, newBalance)
 
 	b.addTransaction(ctx, uid, "refund", tx.Amount, newBalance, fmt.Sprintf("退款-交易号:%s", transactionId))

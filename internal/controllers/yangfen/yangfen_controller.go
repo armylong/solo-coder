@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	yangfenBusiness "github.com/armylong/armylong-go/internal/business/yangfen"
-	"github.com/armylong/armylong-go/internal/middlewares"
 	yangfenCs "github.com/armylong/armylong-go/internal/cs/yangfen"
+	"github.com/armylong/armylong-go/internal/middlewares"
 	"github.com/gin-gonic/gin"
 )
 
@@ -45,10 +45,6 @@ func (c *YangfenController) ActionRecharge(ctx *gin.Context, req *yangfenCs.Rech
 	uid, err := c.getUid(ctx)
 	if err != nil {
 		return nil, err
-	}
-
-	if req.Amount <= 0 {
-		return nil, errors.New("充值金额必须大于0")
 	}
 
 	err = yangfenBusiness.YangfenBusiness.Recharge(ctx, uid, req.Amount, req.ExpireSec)

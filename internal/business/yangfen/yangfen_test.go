@@ -99,6 +99,9 @@ func TestBug2_RefundAfterExpire(t *testing.T) {
 	balance, _ := YangfenBusiness.GetBalance(ctx, uid1)
 	t.Logf("用户1充值后余额: %d (1秒后过期)", balance)
 
+	transactions, _ := YangfenBusiness.GetTransactions(ctx, uid1)
+	t.Logf("充值后交易记录数: %d", len(transactions))
+
 	err = YangfenBusiness.Consume(ctx, uid1, 50)
 	if err != nil {
 		t.Fatalf("消费失败: %v", err)
@@ -107,7 +110,12 @@ func TestBug2_RefundAfterExpire(t *testing.T) {
 	balance, _ = YangfenBusiness.GetBalance(ctx, uid1)
 	t.Logf("消费50后余额: %d", balance)
 
-	transactions, _ := YangfenBusiness.GetTransactions(ctx, uid1)
+	transactions, _ = YangfenBusiness.GetTransactions(ctx, uid1)
+	t.Logf("交易记录数: %d", len(transactions))
+	for i, tx := range transactions {
+		t.Logf("交易%d: %v", i, tx)
+	}
+
 	var consumeTxId string
 	for _, tx := range transactions {
 		if tx["type"] == "consume" {
@@ -131,13 +139,9 @@ func TestBug2_RefundAfterExpire(t *testing.T) {
 
 	err = YangfenBusiness.Refund(ctx, uid1, consumeTxId)
 	if err != nil {
-		t.Fatalf("退款失败: %v", err)
-	}
-
-	balance, _ = YangfenBusiness.GetBalance(ctx, uid1)
-	t.Logf("退款后余额: %d", balance)
-
-	if balance > 0 {
+		t.Logf("退款被正确拒绝: %v", err)
+	} else {
+		balance, _ = YangfenBusiness.GetBalance(ctx, uid1)
 		t.Errorf("Bug复现! 积分已过期，但退款成功，用户凭空获得%d积分", balance)
 	}
 }
