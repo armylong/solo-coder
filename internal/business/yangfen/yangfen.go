@@ -44,15 +44,15 @@ func (b *yangfenBusiness) checkAndClearExpired(ctx context.Context, uid string) 
 
 // 充值
 func (b *yangfenBusiness) Recharge(ctx context.Context, uid string, amount int, expireSec int64) error {
+	if amount <= 0 {
+		return fmt.Errorf("充值金额必须大于0")
+	}
+
 	lock := b.getLock(uid)
 	lock.Lock()
 	defer lock.Unlock()
 
 	b.checkAndClearExpired(ctx, uid)
-
-	if amount <= 0 {
-		return fmt.Errorf("充值金额必须大于0")
-	}
 
 	balance, _ := b.GetBalance(ctx, uid)
 	newBalance := balance + amount
@@ -214,6 +214,15 @@ func (b *yangfenBusiness) addTransaction(ctx context.Context, uid string, txType
 		Description:   desc,
 	}
 	yangfenModel.TbYangfenTransactionModel.Create(tx)
+}
+
+// 手动检查并清除过期余额
+func (b *yangfenBusiness) CheckAndClearExpired(ctx context.Context, uid string) error {
+	lock := b.getLock(uid)
+	lock.Lock()
+	defer lock.Unlock()
+
+	return b.checkAndClearExpired(ctx, uid)
 }
 
 // 清除用户所有数据

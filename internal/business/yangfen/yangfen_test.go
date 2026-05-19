@@ -132,7 +132,7 @@ func TestBug2_RefundAfterExpire(t *testing.T) {
 	time.Sleep(2 * time.Second)
 	t.Log("等待2秒，积分已过期")
 
-	YangfenBusiness.Recharge(ctx, uid1, 0, 100)
+	YangfenBusiness.CheckAndClearExpired(ctx, uid1)
 
 	balance, _ = YangfenBusiness.GetBalance(ctx, uid1)
 	t.Logf("过期后余额: %d (应该为0)", balance)
@@ -198,10 +198,8 @@ func TestBug4_TransactionNotClearedAfterExpire(t *testing.T) {
 	}
 	t.Log("已设置过期时间为48小时前")
 
-	err = YangfenBusiness.Recharge(ctx, uid1, 0, 100)
-	if err == nil {
-		t.Log("充值0触发过期检查")
-	}
+	YangfenBusiness.CheckAndClearExpired(ctx, uid1)
+	t.Log("触发过期检查完成")
 
 	balance, _ = YangfenBusiness.GetBalance(ctx, uid1)
 	transactions, _ = YangfenBusiness.GetTransactions(ctx, uid1)
@@ -229,6 +227,33 @@ func TestAllBugs(t *testing.T) {
 
 	fmt.Println("\n========== Bug4: 交易记录未清理 ==========")
 	TestBug4_TransactionNotClearedAfterExpire(t)
+}
+
+func TestTransferDebug(t *testing.T) {
+	ctx := context.Background()
+	uid1 := "test1"
+	uid2 := "test2"
+
+	YangfenBusiness.ClearData(ctx, uid1)
+	YangfenBusiness.ClearData(ctx, uid2)
+
+	err := YangfenBusiness.Recharge(ctx, uid1, 100, 100)
+	t.Logf("用户1充值结果: %v", err)
+
+	balance1, _ := YangfenBusiness.GetBalance(ctx, uid1)
+	balance2, _ := YangfenBusiness.GetBalance(ctx, uid2)
+	t.Logf("转账前 - 用户1余额: %d, 用户2余额: %d", balance1, balance2)
+
+	err = YangfenBusiness.Transfer(ctx, uid1, uid2, 30)
+	t.Logf("转账结果: %v", err)
+
+	balance1, _ = YangfenBusiness.GetBalance(ctx, uid1)
+	balance2, _ = YangfenBusiness.GetBalance(ctx, uid2)
+	t.Logf("转账后 - 用户1余额: %d, 用户2余额: %d", balance1, balance2)
+
+	if balance1 != 70 || balance2 != 30 {
+		t.Errorf("转账结果不正确! 用户1应该是70, 实际=%d; 用户2应该是30, 实际=%d", balance1, balance2)
+	}
 }
 
 func TestQueryUserTransactions(t *testing.T) {

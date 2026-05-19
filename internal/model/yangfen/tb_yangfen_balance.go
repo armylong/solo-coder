@@ -49,22 +49,33 @@ func (m *tbYangfenBalanceModel) CreateTable() error {
 
 // 按用户查余额
 func (m *tbYangfenBalanceModel) GetByUid(uid string) (*TbYangfenBalance, error) {
-	var row TbYangfenBalance
-	err := sqlite.DB.FindOne(m.TableName(), &row, "uid = ?", uid)
+	row := &TbYangfenBalance{}
+	err := sqlite.DB.DB().QueryRow("SELECT id, uid, balance, expire_time, created_at, updated_at FROM tb_yangfen_balance WHERE uid = ?", uid).Scan(
+		&row.ID, &row.Uid, &row.Balance, &row.ExpireTime, &row.CreatedAt, &row.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
-	return &row, nil
+	return row, nil
 }
 
 // 创建或更新余额（按uid upsert）
 func (m *tbYangfenBalanceModel) CreateOrUpdate(uid string, balance int, expireTime int64) error {
-	data := &TbYangfenBalance{
-		Uid:        uid,
-		Balance:    balance,
-		ExpireTime: expireTime,
+	// 先尝试更新
+	sql := `UPDATE tb_yangfen_balance SET balance = ?, expire_time = ?, updated_at = CURRENT_TIMESTAMP WHERE uid = ?`
+	result, err := sqlite.DB.DB().Exec(sql, balance, expireTime, uid)
+	if err != nil {
+		return err
 	}
-	return sqlite.DB.Upsert(m.TableName(), data, "uid")
+	
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected > 0 {
+		return nil
+	}
+	
+	// 更新失败则插入
+	sql = `INSERT INTO tb_yangfen_balance (uid, balance, expire_time, created_at, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
+	_, err = sqlite.DB.DB().Exec(sql, uid, balance, expireTime)
+	return err
 }
 
 // 更新余额
