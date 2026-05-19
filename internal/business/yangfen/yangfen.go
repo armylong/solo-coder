@@ -64,7 +64,7 @@ func (b *yangfenBusiness) Consume(ctx context.Context, uid string, amount int) e
 		return fmt.Errorf("用户不存在")
 	}
 
-	if row.Balance < amount {
+	if row.Balance <= amount {
 		return fmt.Errorf("余额不足")
 	}
 
@@ -79,9 +79,6 @@ func (b *yangfenBusiness) Consume(ctx context.Context, uid string, amount int) e
 func (b *yangfenBusiness) Transfer(ctx context.Context, fromUid, toUid string, amount int) error {
 	if amount <= 0 {
 		return fmt.Errorf("转账金额必须大于0")
-	}
-	if fromUid == toUid {
-		return fmt.Errorf("不能转给自己")
 	}
 
 	b.checkAndClearExpired(ctx, fromUid)

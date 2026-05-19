@@ -270,7 +270,7 @@ func (b *ppzBusiness) CancelOrder(ctx context.Context, uid int64, req *ppzCs.Can
 		return nil, errors.New("订单已取消")
 	}
 
-	if order.OrderStatus >= ppzModel.OrderStatusAccepted {
+	if order.OrderStatus > ppzModel.OrderStatusAccepted {
 		return nil, errors.New("司机已接单，无法取消")
 	}
 

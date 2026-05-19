@@ -56,7 +56,7 @@ func (b *ppzAuditBusiness) AddMyCar(ctx context.Context, uid int64, req *ppzCs.A
 	if req.CarColor == "" {
 		return nil, errors.New("车辆颜色不能为空")
 	}
-	if req.Seats <= 0 {
+	if req.Seats < 0 {
 		return nil, errors.New("乘客座位数必须大于0")
 	}
 	if req.CarPhoto == "" {
@@ -165,7 +165,7 @@ func (b *ppzAuditBusiness) EditMyCar(ctx context.Context, uid int64, req *ppzCs.
 	if req.CarColor == "" {
 		return nil, errors.New("车辆颜色不能为空")
 	}
-	if req.Seats <= 0 {
+	if req.Seats < 0 {
 		return nil, errors.New("乘客座位数必须大于0")
 	}
 	if req.CarPhoto == "" {
