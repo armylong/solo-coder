@@ -45,8 +45,8 @@ async function apiCall(action, params = {}) {
 async function refreshBalance() {
     try {
         const data = await Auth.fetchApi(API_BASE, 'getBalance', {});
-        if (data.responseData) {
-            document.getElementById('currentBalance').textContent = data.responseData.balance;
+        if (data.data) {
+            document.getElementById('currentBalance').textContent = data.data.balance;
         }
     } catch (error) {
         console.error('获取余额失败:', error);
@@ -59,8 +59,8 @@ async function refreshTransactions() {
         const data = await Auth.fetchApi(API_BASE, 'getTransactions', {});
 
         const list = document.getElementById('transactionList');
-        if (data.responseData && data.responseData.list && data.responseData.list.length > 0) {
-            list.innerHTML = data.responseData.list.map(t => {
+        if (data.data && data.data.list && data.data.list.length > 0) {
+            list.innerHTML = data.data.list.map(t => {
                 const isConsume = t.type === 'consume';
                 const amountClass = (t.type === 'recharge' || t.type === 'refund' || t.type === 'transfer_in') ? 'amount-positive' : 'amount-negative';
                 const typeMap = {
