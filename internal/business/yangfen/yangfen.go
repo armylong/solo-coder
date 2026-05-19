@@ -105,7 +105,7 @@ func (b *yangfenBusiness) Transfer(ctx context.Context, fromUid, toUid string, a
 	newFromBalance := fromRow.Balance - amount
 	newToBalance := toBalance + amount
 
-	yangfenModel.TbYangfenBalanceModel.CreateOrUpdate(fromUid, newFromBalance, fromRow.ExpireTime)
+	yangfenModel.TbYangfenBalanceModel.CreateOrUpdate(fromUid, newFromBalance, 0)
 	yangfenModel.TbYangfenBalanceModel.CreateOrUpdate(toUid, newToBalance, 0)
 
 	b.addTransaction(ctx, fromUid, "transfer_out", amount, newFromBalance, fmt.Sprintf("转出给%s", toUid))
