@@ -569,3 +569,7 @@ window.killProcessByPort = killProcessByPort;
 window.closeConfirmModal = closeConfirmModal;
 window.executeConfirmAction = executeConfirmAction;
 window.clearPortFilter = clearPortFilter;
+window.refreshCPUProcesses = refreshCPUProcesses;
+window.refreshNetworkProcesses = refreshNetworkProcesses;
+window.refreshProcessList = refreshProcessList;
+window.refreshPortList = refreshPort;
