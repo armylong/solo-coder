@@ -174,16 +174,60 @@ export class Renderer {
         this.ctx.stroke();
 
         this.ctx.fillStyle = '#FFFFFF';
-        this.ctx.font = 'bold 16px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
+        this.ctx.strokeStyle = '#FFFFFF';
+        this.ctx.lineWidth = 2;
 
         if (type.id === 'speed') {
-            this.ctx.fillText('⚡', 0, 0);
+            this.ctx.beginPath();
+            this.ctx.moveTo(3, -size * 0.6);
+            this.ctx.lineTo(-3, 0);
+            this.ctx.lineTo(2, 0);
+            this.ctx.lineTo(-1, size * 0.6);
+            this.ctx.lineTo(5, -size * 0.1);
+            this.ctx.lineTo(1, -size * 0.1);
+            this.ctx.closePath();
+            this.ctx.fill();
         } else if (type.id === 'shield') {
-            this.ctx.fillText('🛡', 0, 0);
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, -size * 0.6);
+            this.ctx.lineTo(size * 0.5, -size * 0.35);
+            this.ctx.lineTo(size * 0.5, size * 0.15);
+            this.ctx.lineTo(0, size * 0.5);
+            this.ctx.lineTo(-size * 0.5, size * 0.15);
+            this.ctx.lineTo(-size * 0.5, -size * 0.35);
+            this.ctx.closePath();
+            this.ctx.fill();
+            
+            this.ctx.strokeStyle = type.colorLight;
+            this.ctx.lineWidth = 1.5;
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, -size * 0.3);
+            this.ctx.lineTo(0, size * 0.2);
+            this.ctx.moveTo(-size * 0.2, -size * 0.1);
+            this.ctx.lineTo(size * 0.2, -size * 0.1);
+            this.ctx.stroke();
         } else if (type.id === 'shrink') {
-            this.ctx.fillText('◆', 0, 0);
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, -size * 0.55);
+            this.ctx.lineTo(size * 0.45, 0);
+            this.ctx.lineTo(0, size * 0.55);
+            this.ctx.lineTo(-size * 0.45, 0);
+            this.ctx.closePath();
+            this.ctx.fill();
+            
+            this.ctx.fillStyle = type.colorLight;
+            this.ctx.beginPath();
+            this.ctx.arc(0, 0, size * 0.2, 0, Math.PI * 2);
+            this.ctx.fill();
+            
+            this.ctx.strokeStyle = '#FFFFFF';
+            this.ctx.lineWidth = 1.5;
+            this.ctx.beginPath();
+            this.ctx.moveTo(-size * 0.3, 0);
+            this.ctx.lineTo(size * 0.3, 0);
+            this.ctx.moveTo(0, -size * 0.3);
+            this.ctx.lineTo(0, size * 0.3);
+            this.ctx.stroke();
         }
 
         this.ctx.restore();

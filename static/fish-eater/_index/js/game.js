@@ -95,10 +95,10 @@ export class Game {
             const centerX = this.canvas.width / 2;
             const centerY = this.canvas.height / 2;
             
-            const startBtnX = centerX - 100;
-            const startBtnY = this.state === GAME_STATES.IDLE ? centerY + 100 : centerY + 110;
-            const startBtnWidth = 200;
-            const startBtnHeight = 50;
+            const startBtnX = centerX - 120;
+            const startBtnY = this.state === GAME_STATES.IDLE ? centerY + 160 : centerY + 195;
+            const startBtnWidth = 240;
+            const startBtnHeight = 55;
             
             if (x >= startBtnX && x <= startBtnX + startBtnWidth &&
                 y >= startBtnY && y <= startBtnY + startBtnHeight) {
@@ -108,7 +108,7 @@ export class Game {
             
             if (this.state === GAME_STATES.GAME_OVER) {
                 const leaderboardBtnX = centerX - 80;
-                const leaderboardBtnY = centerY + 175;
+                const leaderboardBtnY = centerY + 135;
                 const leaderboardBtnWidth = 160;
                 const leaderboardBtnHeight = 45;
                 
