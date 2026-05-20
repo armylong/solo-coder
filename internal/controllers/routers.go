@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	announcementController "github.com/armylong/armylong-go/internal/controllers/announcement"
 	apiCatcherController "github.com/armylong/armylong-go/internal/controllers/api_catcher"
 	gaodeController "github.com/armylong/armylong-go/internal/controllers/gaode"
 	"github.com/armylong/armylong-go/internal/controllers/index"
@@ -60,6 +61,7 @@ func RegisterRouters(engine *gin.Engine) {
 	longgin.RegisterJsonController(publicGroup.Group("/ppz/ppz_map"), &ppzController.PpzMapController{})
 	longgin.RegisterJsonController(publicGroup.Group("/gaode"), &gaodeController.GaodeController{})
 	longgin.RegisterJsonController(publicGroup.Group("/long_doc"), &longDocController.LongDocController{})
+	longgin.RegisterJsonController(publicGroup.Group("/announcement"), &announcementController.AnnouncementController{})
 
 	// ==================== 管理员及以上 ====================
 	adminGroup := engine.Group("", middlewares.Middleware, middlewares.RequireAdmin)
