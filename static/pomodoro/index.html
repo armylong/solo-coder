@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>番茄钟 - 番茄工作法效率工具</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="pomodoro-container">
+        <header class="pomodoro-header">
+            <h1>🍅 番茄钟</h1>
+            <button id="settingsBtn" class="btn btn-secondary settings-btn">⚙️ 设置</button>
+        </header>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="timer-card">
+                    <div class="mode-tabs">
+                        <button class="mode-tab active" data-mode="focus">专注</button>
+                        <button class="mode-tab" data-mode="shortBreak">短休息</button>
+                        <button class="mode-tab" data-mode="longBreak">长休息</button>
+                    </div>
+
+                    <div class="timer-display">
+                        <svg class="progress-ring" viewBox="0 0 200 200">
+                            <circle class="progress-ring-bg" cx="100" cy="100" r="90"></circle>
+                            <circle class="progress-ring-circle" cx="100" cy="100" r="90"></circle>
+                        </svg>
+                        <div class="time-display">
+                            <span id="timeLeft">25:00</span>
+                        </div>
+                    </div>
+
+                    <div class="timer-controls">
+                        <button id="startPauseBtn" class="btn btn-primary control-btn">▶️ 开始</button>
+                        <button id="resetBtn" class="btn btn-secondary control-btn">🔄 重置</button>
+                        <button id="skipBtn" class="btn btn-secondary control-btn">⏭️ 跳过</button>
+                    </div>
+
+                    <div class="pomodoro-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="todayPomodoros">0</span>
+                            <span class="stat-label">今日番茄</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="totalFocusTime">0分钟</span>
+                            <span class="stat-label">专注时长</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="task-card">
+                    <div class="task-header">
+                        <h2>📋 今日任务</h2>
+                    </div>
+                    <div class="task-input-container">
+                        <input type="text" id="taskInput" class="task-input" placeholder="添加新任务...">
+                        <button id="addTaskBtn" class="btn btn-primary add-task-btn">添加</button>
+                    </div>
+                    <div id="taskList" class="task-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙️ 设置</h3>
+                <button class="modal-close" id="closeSettings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label for="focusDuration">专注时长（分钟）</label>
+                    <input type="number" id="focusDuration" min="1" max="60" value="25">
+                </div>
+                <div class="setting-item">
+                    <label for="shortBreakDuration">短休息时长（分钟）</label>
+                    <input type="number" id="shortBreakDuration" min="1" max="30" value="5">
+                </div>
+                <div class="setting-item">
+                    <label for="longBreakDuration">长休息时长（分钟）</label>
+                    <input type="number" id="longBreakDuration" min="1" max="60" value="15">
+                </div>
+                <div class="setting-item">
+                    <label for="longBreakInterval">长休息间隔（番茄数）</label>
+                    <input type="number" id="longBreakInterval" min="2" max="8" value="4">
+                </div>
+                <div class="setting-item">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="soundEnabled" checked>
+                        <span>启用音效提醒</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="saveSettings" class="btn btn-primary">保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

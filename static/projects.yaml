@@ -123,3 +123,9 @@ solar-system:
   type: app
   permission: user
   desc: Three.js 太阳系3D模拟
+
+pomodoro:
+  name_cn: 番茄钟
+  type: app
+  permission: user
+  desc: 番茄工作法效率工具
