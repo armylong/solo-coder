@@ -25,6 +25,7 @@ class PomodoroTimer {
     init() {
         this.loadFromStorage();
         this.bindEvents();
+        this.updateModeColor();
         this.updateDisplay();
         this.updateProgressRing();
         this.renderTasks();
@@ -35,7 +36,8 @@ class PomodoroTimer {
         const today = new Date().toDateString();
         const savedDate = localStorage.getItem('pomodoroDate');
         
-        if (savedDate !== today) {
+        const isNewDay = savedDate !== today;
+        if (isNewDay) {
             localStorage.setItem('pomodoroDate', today);
             this.todayPomodoros = 0;
             this.totalFocusMinutes = 0;
@@ -56,9 +58,11 @@ class PomodoroTimer {
             this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
         }
 
-        const savedTasks = localStorage.getItem('pomodoroTasks');
-        if (savedTasks) {
-            this.tasks = JSON.parse(savedTasks);
+        if (!isNewDay) {
+            const savedTasks = localStorage.getItem('pomodoroTasks');
+            if (savedTasks) {
+                this.tasks = JSON.parse(savedTasks);
+            }
         }
 
         this.timeLeft = this.settings.focusDuration * 60;
