@@ -157,7 +157,7 @@ export class Renderer {
      * 渲染整个游戏画面
      */
     render(gameState) {
-        const { board, currentPiece, nextPiece, holdPiece } = gameState;
+        const { board, currentPiece, nextPiece, holdPiece, showTSpin, tSpinTimer } = gameState;
 
         // 绘制游戏面板
         this.drawBoard(board);
@@ -173,6 +173,51 @@ export class Renderer {
 
         // 绘制暂存方块
         this.drawHoldPiece(holdPiece);
+
+        // 绘制T-Spin文字动画
+        if (showTSpin) {
+            this.drawTSpinText(tSpinTimer);
+        }
+    }
+
+    /**
+     * 绘制T-Spin文字动画
+     */
+    drawTSpinText(timer) {
+        const centerX = this.gameCanvas.width / 2;
+        const centerY = this.gameCanvas.height / 3;
+        
+        // 计算透明度和缩放效果
+        const progress = timer / 1500;
+        const alpha = Math.min(1, progress * 2);
+        const scale = 1 + (1 - progress) * 0.3;
+        
+        this.gameCtx.save();
+        this.gameCtx.globalAlpha = alpha;
+        this.gameCtx.translate(centerX, centerY);
+        this.gameCtx.scale(scale, scale);
+        
+        // 绘制文字边框
+        this.gameCtx.font = 'bold 36px Arial';
+        this.gameCtx.textAlign = 'center';
+        this.gameCtx.textBaseline = 'middle';
+        
+        // 绘制阴影
+        this.gameCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+        this.gameCtx.shadowBlur = 10;
+        this.gameCtx.shadowOffsetX = 3;
+        this.gameCtx.shadowOffsetY = 3;
+        
+        // 绘制文字填充
+        this.gameCtx.fillStyle = '#ffeb3b';
+        this.gameCtx.fillText('T-SPIN!', 0, 0);
+        
+        // 绘制文字描边
+        this.gameCtx.strokeStyle = '#ff9800';
+        this.gameCtx.lineWidth = 3;
+        this.gameCtx.strokeText('T-SPIN!', 0, 0);
+        
+        this.gameCtx.restore();
     }
 
     /**

@@ -24,10 +24,13 @@ export class Game {
         this.highScore = this.loadHighScore();
         this.dropInterval = LEVEL_SPEED[1];
         this.lastDropTime = 0;
+        this.lastUpdateTime = 0;
         this.isSoftDropping = false;
         this.combo = 0;
         this.maxCombo = 0;
         this.lastRotation = false;
+        this.showTSpin = false;
+        this.tSpinTimer = 0;
     }
 
     /**
@@ -44,9 +47,12 @@ export class Game {
         this.combo = 0;
         this.maxCombo = 0;
         this.lastRotation = false;
+        this.showTSpin = false;
+        this.tSpinTimer = 0;
         this.state = GAME_STATE.PLAYING;
         this.spawnPiece();
         this.lastDropTime = performance.now();
+        this.lastUpdateTime = performance.now();
     }
 
     /**
@@ -58,6 +64,7 @@ export class Game {
         } else if (this.state === GAME_STATE.PAUSED) {
             this.state = GAME_STATE.PLAYING;
             this.lastDropTime = performance.now();
+            this.lastUpdateTime = performance.now();
         }
     }
 
@@ -126,11 +133,22 @@ export class Game {
             return;
         }
 
+        const deltaTime = timestamp - this.lastUpdateTime;
+        this.lastUpdateTime = timestamp;
+
         const interval = this.isSoftDropping ? 50 : this.dropInterval;
 
         if (timestamp - this.lastDropTime > interval) {
             this.drop();
             this.lastDropTime = timestamp;
+        }
+
+        if (this.tSpinTimer > 0) {
+            this.tSpinTimer -= deltaTime;
+            if (this.tSpinTimer <= 0) {
+                this.showTSpin = false;
+                this.tSpinTimer = 0;
+            }
         }
     }
 
@@ -203,6 +221,8 @@ export class Game {
             
             if (isTSpin && linesCleared <= 3) {
                 lineScore = T_SPIN_SCORE[linesCleared] * this.level;
+                this.showTSpin = true;
+                this.tSpinTimer = 1500;
             }
 
             const comboBonus = 50 * this.combo * this.level;
@@ -330,7 +350,9 @@ export class Game {
             highScore: this.highScore,
             gameState: this.state,
             combo: this.combo,
-            maxCombo: this.maxCombo
+            maxCombo: this.maxCombo,
+            showTSpin: this.showTSpin,
+            tSpinTimer: this.tSpinTimer
         };
     }
 }

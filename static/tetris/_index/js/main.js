@@ -1,4 +1,3 @@
-import { Auth } from '/static/_common/auth.js';
 import { GAME_STATE } from './constants.js';
 import { Game } from './game.js';
 import { Renderer } from './renderer.js';
