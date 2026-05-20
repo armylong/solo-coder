@@ -150,9 +150,48 @@ export class Renderer {
         };
     }
 
-    drawFish(fish) {
+    drawPowerUp(powerUp) {
+        const type = powerUp.type;
+        const size = powerUp.size;
+
+        this.ctx.save();
+        this.ctx.translate(powerUp.x, powerUp.y);
+
+        const gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+        gradient.addColorStop(0, type.colorLight);
+        gradient.addColorStop(0.7, type.color);
+        gradient.addColorStop(1, type.color + '80');
+
+        this.ctx.fillStyle = gradient;
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, size, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        this.ctx.strokeStyle = type.color;
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+        this.ctx.arc(0, 0, size + 2, 0, Math.PI * 2);
+        this.ctx.stroke();
+
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+
+        if (type.id === 'speed') {
+            this.ctx.fillText('⚡', 0, 0);
+        } else if (type.id === 'shield') {
+            this.ctx.fillText('🛡', 0, 0);
+        } else if (type.id === 'shrink') {
+            this.ctx.fillText('◆', 0, 0);
+        }
+
+        this.ctx.restore();
+    }
+
+    drawFish(fish, effectiveSize = null, hasShield = false) {
         const colors = this._getFishColors(fish);
-        const size = fish.size;
+        const size = effectiveSize || fish.size;
         
         this.ctx.save();
         this.ctx.translate(fish.x, fish.y);
@@ -227,11 +266,25 @@ export class Renderer {
             this.ctx.ellipse(0, 0, width / 2 + 8, height / 2 + 8, 0, 0, Math.PI * 2);
             this.ctx.stroke();
         }
+
+        if (fish.isPlayer && hasShield) {
+            const pulse = Math.sin(performance.now() * 0.008) * 0.2 + 0.8;
+            this.ctx.strokeStyle = `rgba(33, 150, 243, ${pulse * 0.7})`;
+            this.ctx.lineWidth = 4;
+            this.ctx.beginPath();
+            this.ctx.ellipse(0, 0, width / 2 + 12, height / 2 + 12, 0, 0, Math.PI * 2);
+            this.ctx.stroke();
+            
+            this.ctx.fillStyle = `rgba(33, 150, 243, ${pulse * 0.15})`;
+            this.ctx.beginPath();
+            this.ctx.ellipse(0, 0, width / 2 + 12, height / 2 + 12, 0, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
         
         this.ctx.restore();
     }
 
-    drawUI(player, levelProgress = null) {
+    drawUI(player, levelProgress = null, activeEffects = []) {
         const level = player.getLevel();
         const hpPercent = (player.hp / PLAYER_CONFIG.INITIAL_HP) * 100;
         const isInvincible = player.isInvincible && player.isInvincible();
@@ -307,6 +360,23 @@ export class Renderer {
             this.ctx.fillText('⭐ 无敌状态 ⭐', this.canvas.width / 2, 50);
         }
         
+        if (activeEffects.length > 0) {
+            let effectY = 175;
+            activeEffects.forEach(effect => {
+                this.ctx.fillStyle = effect.color;
+                this.ctx.font = 'bold 14px Arial';
+                this.ctx.textAlign = 'left';
+                let text = `${effect.name}`;
+                if (effect.remaining !== null) {
+                    text += `: ${effect.remaining}秒`;
+                } else {
+                    text += `: 激活`;
+                }
+                this.ctx.fillText(text, 30, effectY);
+                effectY += 22;
+            });
+        }
+        
         this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         this.ctx.fillRect(this.canvas.width - 170, 20, 150, 40);
         this.ctx.strokeStyle = '#666';
@@ -321,7 +391,76 @@ export class Renderer {
         this.ctx.restore();
     }
 
-    drawStartScreen() {
+    drawLeaderboard(entries) {
+        this.clear();
+        
+        this.ctx.save();
+        
+        const centerX = this.canvas.width / 2;
+        const centerY = this.canvas.height / 2;
+        
+        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        this.ctx.fillStyle = COLORS.UI_BACKGROUND;
+        this.ctx.fillRect(centerX - 250, centerY - 250, 500, 500);
+        this.ctx.strokeStyle = '#FFD700';
+        this.ctx.lineWidth = 3;
+        this.ctx.strokeRect(centerX - 250, centerY - 250, 500, 500);
+        
+        this.ctx.fillStyle = COLORS.SCORE_TEXT;
+        this.ctx.font = 'bold 36px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('🏆 排行榜 🏆', centerX, centerY - 200);
+        
+        if (entries.length === 0) {
+            this.ctx.fillStyle = COLORS.UI_TEXT;
+            this.ctx.font = '18px Arial';
+            this.ctx.fillText('暂无记录，快去游戏吧！', centerX, centerY);
+        } else {
+            this.ctx.fillStyle = '#AAA';
+            this.ctx.font = '14px Arial';
+            this.ctx.fillText('排名', centerX - 180, centerY - 155);
+            this.ctx.fillText('分数', centerX, centerY - 155);
+            this.ctx.fillText('等级', centerX + 160, centerY - 155);
+            
+            entries.forEach((entry, index) => {
+                const y = centerY - 125 + index * 35;
+                
+                let rankColor = COLORS.UI_TEXT;
+                if (index === 0) rankColor = '#FFD700';
+                else if (index === 1) rankColor = '#C0C0C0';
+                else if (index === 2) rankColor = '#CD7F32';
+                
+                this.ctx.fillStyle = rankColor;
+                this.ctx.font = 'bold 16px Arial';
+                this.ctx.textAlign = 'left';
+                this.ctx.fillText(`${index + 1}.`, centerX - 190, y);
+                
+                this.ctx.fillStyle = COLORS.SCORE_TEXT;
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(`${entry.score}`, centerX, y);
+                
+                this.ctx.fillStyle = '#4CAF50';
+                this.ctx.textAlign = 'right';
+                this.ctx.fillText(`${entry.level}级`, centerX + 190, y);
+            });
+        }
+        
+        this.ctx.fillStyle = COLORS.BUTTON_BG;
+        this.ctx.beginPath();
+        this.ctx.roundRect(centerX - 80, centerY + 200, 160, 45, 10);
+        this.ctx.fill();
+        
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.fillText('关闭', centerX, centerY + 228);
+        
+        this.ctx.restore();
+    }
+
+    drawStartScreen(useMouseControl = true) {
         this.clear();
         
         this.ctx.save();
@@ -340,9 +479,15 @@ export class Renderer {
         this.ctx.textAlign = 'center';
         this.ctx.fillText('🐟 大鱼吃小鱼 🐟', centerX, centerY - 180);
         
+        this.ctx.fillStyle = useMouseControl ? '#4CAF50' : '#FF9800';
+        this.ctx.font = 'bold 16px Arial';
+        this.ctx.fillText(`当前操作：${useMouseControl ? '🖱️ 鼠标控制' : '⌨️ 键盘控制'}`, centerX, centerY - 150);
+        this.ctx.fillStyle = '#AAA';
+        this.ctx.font = '13px Arial';
+        this.ctx.fillText('按 Tab 键切换操作方式', centerX, centerY - 130);
+        
         this.ctx.fillStyle = COLORS.UI_TEXT;
         this.ctx.font = '18px Arial';
-        this.ctx.fillText('操作方式：鼠标移动 或 方向键/WASD控制', centerX, centerY - 130);
         this.ctx.fillText('━━━━━━━━━━━━━━━━━━━━━━━', centerX, centerY - 100);
         
         this.ctx.font = '16px Arial';
@@ -378,7 +523,7 @@ export class Renderer {
         this.ctx.restore();
     }
 
-    drawGameOver(player) {
+    drawGameOver(player, rank = -1, useMouseControl = true) {
         this.ctx.save();
         
         const centerX = this.canvas.width / 2;
@@ -388,42 +533,65 @@ export class Renderer {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
         this.ctx.fillStyle = COLORS.UI_BACKGROUND;
-        this.ctx.fillRect(centerX - 280, centerY - 200, 560, 400);
+        this.ctx.fillRect(centerX - 280, centerY - 230, 560, 480);
         this.ctx.strokeStyle = '#F44336';
         this.ctx.lineWidth = 3;
-        this.ctx.strokeRect(centerX - 280, centerY - 200, 560, 400);
+        this.ctx.strokeRect(centerX - 280, centerY - 230, 560, 480);
         
         this.ctx.fillStyle = '#F44336';
         this.ctx.font = 'bold 44px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText('游戏结束', centerX, centerY - 130);
+        this.ctx.fillText('游戏结束', centerX, centerY - 170);
+        
+        if (rank >= 0 && rank < 10) {
+            this.ctx.fillStyle = '#FFD700';
+            this.ctx.font = 'bold 18px Arial';
+            const rankText = rank === 0 ? '🎉 新纪录！第1名！' : `🎉 第${rank + 1}名！`;
+            this.ctx.fillText(rankText, centerX, centerY - 140);
+        }
+        
+        this.ctx.fillStyle = useMouseControl ? '#4CAF50' : '#FF9800';
+        this.ctx.font = 'bold 14px Arial';
+        this.ctx.fillText(`当前操作：${useMouseControl ? '🖱️ 鼠标控制' : '⌨️ 键盘控制'}`, centerX, centerY - 115);
+        this.ctx.fillStyle = '#AAA';
+        this.ctx.font = '12px Arial';
+        this.ctx.fillText('按 Tab 键切换操作方式', centerX, centerY - 95);
         
         this.ctx.fillStyle = COLORS.UI_TEXT;
         this.ctx.font = '20px Arial';
-        this.ctx.fillText('最终等级', centerX, centerY - 75);
+        this.ctx.fillText('最终等级', centerX, centerY - 55);
         this.ctx.fillStyle = COLORS.SCORE_TEXT;
         this.ctx.font = 'bold 38px Arial';
-        this.ctx.fillText(`等级 ${player.getLevel()}`, centerX, centerY - 35);
+        this.ctx.fillText(`等级 ${player.getLevel()}`, centerX, centerY - 15);
         
         this.ctx.fillStyle = player.species.color;
         this.ctx.font = '18px Arial';
-        this.ctx.fillText(`最终种类: ${player.species.name}`, centerX, centerY);
+        this.ctx.fillText(`最终种类: ${player.species.name}`, centerX, centerY + 25);
         
         this.ctx.fillStyle = COLORS.UI_TEXT;
         this.ctx.font = '20px Arial';
-        this.ctx.fillText('最终分数', centerX, centerY + 50);
+        this.ctx.fillText('最终分数', centerX, centerY + 65);
         this.ctx.fillStyle = COLORS.SCORE_TEXT;
         this.ctx.font = 'bold 38px Arial';
-        this.ctx.fillText(`${player.score} 分`, centerX, centerY + 90);
+        this.ctx.fillText(`${player.score} 分`, centerX, centerY + 105);
+        
+        this.ctx.fillStyle = '#9C27B0';
+        this.ctx.beginPath();
+        this.ctx.roundRect(centerX - 80, centerY + 135, 160, 45, 10);
+        this.ctx.fill();
+        
+        this.ctx.fillStyle = '#FFFFFF';
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.fillText('🏆 排行榜', centerX, centerY + 163);
         
         this.ctx.fillStyle = COLORS.BUTTON_BG;
         this.ctx.beginPath();
-        this.ctx.roundRect(centerX - 110, centerY + 120, 220, 55, 12);
+        this.ctx.roundRect(centerX - 110, centerY + 195, 220, 55, 12);
         this.ctx.fill();
         
         this.ctx.fillStyle = '#FFFFFF';
         this.ctx.font = 'bold 24px Arial';
-        this.ctx.fillText('重新开始', centerX, centerY + 155);
+        this.ctx.fillText('重新开始', centerX, centerY + 230);
         
         this.ctx.restore();
     }

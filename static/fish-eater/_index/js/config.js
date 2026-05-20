@@ -201,6 +201,41 @@ export const ANIMATION_CONFIG = {
     SEAWEED_SWAY_AMPLITUDE: 12
 };
 
+export const POWERUP_CONFIG = {
+    SPAWN_INTERVAL: 15000,
+    MAX_COUNT: 2,
+    LIFETIME: 10000,
+    BOUNCE_SPEED: 0.003,
+    BOUNCE_AMPLITUDE: 8,
+    SIZE: 25
+};
+
+export const POWERUP_TYPES = {
+    SPEED: {
+        id: 'speed',
+        name: '加速',
+        color: '#FFD700',
+        colorLight: '#FFEB3B',
+        duration: 8000,
+        speedMultiplier: 1.5
+    },
+    SHIELD: {
+        id: 'shield',
+        name: '护盾',
+        color: '#2196F3',
+        colorLight: '#64B5F6',
+        duration: null
+    },
+    SHRINK: {
+        id: 'shrink',
+        name: '缩小光线',
+        color: '#9C27B0',
+        colorLight: '#BA68C8',
+        duration: 6000,
+        shrinkRatio: 0.7
+    }
+};
+
 export function getSpeciesById(id) {
     return FISH_SPECIES.find(s => s.id === id) || FISH_SPECIES[0];
 }

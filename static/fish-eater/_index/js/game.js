@@ -1,6 +1,8 @@
 import { Fish } from './fish.js';
 import { Renderer } from './renderer.js';
 import { GAME_STATES, PLAYER_CONFIG, AI_FISH_CONFIG, LEVELS } from './config.js';
+import { PowerUpManager } from './powerup.js';
+import { LeaderboardManager } from './leaderboard.js';
 
 export class Game {
     constructor(canvas) {
@@ -22,6 +24,10 @@ export class Game {
             right: false
         };
 
+        this.powerUpManager = new PowerUpManager();
+        this.leaderboardManager = new LeaderboardManager();
+        this.showLeaderboard = false;
+
         this._init();
     }
 
@@ -35,7 +41,7 @@ export class Game {
         document.addEventListener('keydown', (e) => this._handleKeyDown(e));
         document.addEventListener('keyup', (e) => this._handleKeyUp(e));
         
-        this.renderer.drawStartScreen();
+        this.renderer.drawStartScreen(this.useMouseControl);
     }
 
     _resizeCanvas() {
@@ -66,18 +72,51 @@ export class Game {
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         
+        if (this.showLeaderboard) {
+            const centerX = this.canvas.width / 2;
+            const closeBtnX = centerX - 80;
+            const closeBtnY = this.canvas.height / 2 + 200;
+            const closeBtnWidth = 160;
+            const closeBtnHeight = 45;
+            
+            if (x >= closeBtnX && x <= closeBtnX + closeBtnWidth &&
+                y >= closeBtnY && y <= closeBtnY + closeBtnHeight) {
+                this.showLeaderboard = false;
+                if (this.state === GAME_STATES.IDLE) {
+                    this.renderer.drawStartScreen(this.useMouseControl);
+                } else if (this.state === GAME_STATES.GAME_OVER) {
+                    this.renderer.drawGameOver(this.player, -1, this.useMouseControl);
+                }
+                return;
+            }
+        }
+        
         if (this.state === GAME_STATES.IDLE || this.state === GAME_STATES.GAME_OVER) {
             const centerX = this.canvas.width / 2;
             const centerY = this.canvas.height / 2;
             
-            const buttonX = centerX - 100;
-            const buttonY = this.state === GAME_STATES.IDLE ? centerY + 100 : centerY + 110;
-            const buttonWidth = 200;
-            const buttonHeight = 50;
+            const startBtnX = centerX - 100;
+            const startBtnY = this.state === GAME_STATES.IDLE ? centerY + 100 : centerY + 110;
+            const startBtnWidth = 200;
+            const startBtnHeight = 50;
             
-            if (x >= buttonX && x <= buttonX + buttonWidth &&
-                y >= buttonY && y <= buttonY + buttonHeight) {
+            if (x >= startBtnX && x <= startBtnX + startBtnWidth &&
+                y >= startBtnY && y <= startBtnY + startBtnHeight) {
                 this.start();
+                return;
+            }
+            
+            if (this.state === GAME_STATES.GAME_OVER) {
+                const leaderboardBtnX = centerX - 80;
+                const leaderboardBtnY = centerY + 175;
+                const leaderboardBtnWidth = 160;
+                const leaderboardBtnHeight = 45;
+                
+                if (x >= leaderboardBtnX && x <= leaderboardBtnX + leaderboardBtnWidth &&
+                    y >= leaderboardBtnY && y <= leaderboardBtnY + leaderboardBtnHeight) {
+                    this.showLeaderboard = true;
+                    this.renderer.drawLeaderboard(this.leaderboardManager.getEntries());
+                }
             }
         }
     }
@@ -85,7 +124,24 @@ export class Game {
     _handleKeyDown(e) {
         if (e.code === 'Space') {
             if (this.state === GAME_STATES.IDLE || this.state === GAME_STATES.GAME_OVER) {
-                this.start();
+                if (!this.showLeaderboard) {
+                    this.start();
+                }
+            }
+            return;
+        }
+
+        if (e.code === 'Tab') {
+            e.preventDefault();
+            if (this.state === GAME_STATES.IDLE || this.state === GAME_STATES.GAME_OVER) {
+                if (!this.showLeaderboard) {
+                    this.useMouseControl = !this.useMouseControl;
+                    if (this.state === GAME_STATES.IDLE) {
+                        this.renderer.drawStartScreen(this.useMouseControl);
+                    } else {
+                        this.renderer.drawGameOver(this.player, -1, this.useMouseControl);
+                    }
+                }
             }
             return;
         }
@@ -149,6 +205,8 @@ export class Game {
         this.aiFishes = [];
         this.lastSpawnTime = performance.now();
         this.useMouseControl = true;
+        this.showLeaderboard = false;
+        this.powerUpManager.reset();
         
         this.keyStates = {
             up: false,
@@ -229,15 +287,17 @@ export class Game {
             this.lastSpawnTime = now;
         }
 
+        const speedMultiplier = this.powerUpManager.getSpeedMultiplier();
+        
         if (this.useMouseControl) {
-            this.player.updatePlayer(this.canvas.width, this.canvas.height);
+            this.player.updatePlayer(this.canvas.width, this.canvas.height, speedMultiplier);
         } else {
             const hasKeyInput = this.keyStates.up || this.keyStates.down || 
                                this.keyStates.left || this.keyStates.right;
             if (hasKeyInput) {
-                this.player.moveWithKeys(this.keyStates, this.canvas.width, this.canvas.height);
+                this.player.moveWithKeys(this.keyStates, this.canvas.width, this.canvas.height, speedMultiplier);
             } else {
-                this.player.updatePlayer(this.canvas.width, this.canvas.height);
+                this.player.updatePlayer(this.canvas.width, this.canvas.height, speedMultiplier);
             }
         }
 
@@ -255,6 +315,8 @@ export class Game {
             }
         }
 
+        this.powerUpManager.update(this.canvas.width, this.canvas.height, this.player);
+        
         this._checkCollisions();
         this._render();
 
@@ -262,19 +324,31 @@ export class Game {
     }
 
     _checkCollisions() {
+        const shrinkRatio = this.powerUpManager.getShrinkRatio();
+        
         for (let i = this.aiFishes.length - 1; i >= 0; i--) {
             const aiFish = this.aiFishes[i];
             
+            let effectiveAiSize = aiFish.size;
+            if (shrinkRatio < 1 && aiFish.size > this.player.size) {
+                effectiveAiSize = aiFish.size * shrinkRatio;
+            }
+            
             if (this.player.collidesWith(aiFish)) {
-                const canEat = aiFish.size < this.player.size * 0.85;
-                const sameSize = Math.abs(aiFish.size - this.player.size) < this.player.size * 0.15;
-                const isBigger = aiFish.size > this.player.size * 0.85;
+                const canEat = effectiveAiSize < this.player.size * 0.85;
+                const sameSize = Math.abs(effectiveAiSize - this.player.size) < this.player.size * 0.15;
+                const isBigger = effectiveAiSize > this.player.size * 0.85;
                 
                 if (canEat) {
                     this.player.grow(PLAYER_CONFIG.GROWTH_RATE * aiFish.size / 8);
                     this.player.score += Math.floor(aiFish.size);
                     this.aiFishes.splice(i, 1);
                 } else if (isBigger && !this.player.isInvincible()) {
+                    if (this.powerUpManager.consumeShield()) {
+                        this.aiFishes.splice(i, 1);
+                        continue;
+                    }
+                    
                     this.player.hp -= PLAYER_CONFIG.HP_DECREASE_PER_HIT;
                     this.player.setInvincible();
                     this.aiFishes.splice(i, 1);
@@ -295,15 +369,27 @@ export class Game {
         
         this.renderer.clear();
         
+        this.powerUpManager.powerUps.forEach(powerUp => {
+            this.renderer.drawPowerUp(powerUp);
+        });
+        
+        const shrinkRatio = this.powerUpManager.getShrinkRatio();
+        
         const fishesToDraw = [...this.aiFishes, this.player];
         fishesToDraw.sort((a, b) => a.y - b.y);
         
         fishesToDraw.forEach(fish => {
-            this.renderer.drawFish(fish);
+            let effectiveSize = fish.size;
+            if (shrinkRatio < 1 && !fish.isPlayer && fish.size > this.player.size) {
+                effectiveSize = fish.size * shrinkRatio;
+            }
+            const hasShield = fish.isPlayer && this.powerUpManager.hasShield();
+            this.renderer.drawFish(fish, effectiveSize, hasShield);
         });
         
         const levelProgress = this._getLevelProgress(this.player);
-        this.renderer.drawUI(this.player, levelProgress);
+        const activeEffects = this.powerUpManager.getActiveEffectsInfo();
+        this.renderer.drawUI(this.player, levelProgress, activeEffects);
     }
 
     _gameOver() {
@@ -313,7 +399,9 @@ export class Game {
             cancelAnimationFrame(this.gameLoop);
             this.gameLoop = null;
         }
-        this.renderer.drawGameOver(this.player);
+        
+        const rank = this.leaderboardManager.addEntry(this.player.score, this.player.getLevel());
+        this.renderer.drawGameOver(this.player, rank, this.useMouseControl);
     }
 
     _getLevelProgress(player) {

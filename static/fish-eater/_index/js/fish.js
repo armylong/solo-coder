@@ -81,7 +81,7 @@ export class Fish {
         this.size = Math.min(this.size + amount, PLAYER_CONFIG.MAX_SIZE);
     }
 
-    updatePlayer(canvasWidth, canvasHeight) {
+    updatePlayer(canvasWidth, canvasHeight, speedMultiplier = 1) {
         const dx = this.targetX - this.x;
         const dy = this.targetY - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -89,7 +89,7 @@ export class Fish {
         const stopDistance = this.size * 0.2;
         
         if (distance > stopDistance) {
-            const speed = Math.min(distance * 0.12, PLAYER_CONFIG.SPEED);
+            const speed = Math.min(distance * 0.12, PLAYER_CONFIG.SPEED * speedMultiplier);
             
             this.vx = (dx / distance) * speed;
             this.vy = (dy / distance) * speed;
@@ -156,7 +156,7 @@ export class Fish {
         this.targetY = y;
     }
 
-    moveWithKeys(keyStates, canvasWidth, canvasHeight) {
+    moveWithKeys(keyStates, canvasWidth, canvasHeight, speedMultiplier = 1) {
         let dx = 0;
         let dy = 0;
         
@@ -167,8 +167,8 @@ export class Fish {
         
         if (dx !== 0 || dy !== 0) {
             const length = Math.sqrt(dx * dx + dy * dy);
-            this.vx = (dx / length) * PLAYER_CONFIG.SPEED;
-            this.vy = (dy / length) * PLAYER_CONFIG.SPEED;
+            this.vx = (dx / length) * PLAYER_CONFIG.SPEED * speedMultiplier;
+            this.vy = (dy / length) * PLAYER_CONFIG.SPEED * speedMultiplier;
             
             this.angle = Math.atan2(this.vy, this.vx);
         } else {
