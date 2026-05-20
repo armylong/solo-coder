@@ -4,7 +4,7 @@ import { COLS, ROWS, BLOCK_SIZE, COLORS } from './constants.js';
  * 游戏面板类
  * 负责管理游戏区域的状态、碰撞检测、消行等逻辑
  */
-export export class Board {
+export class Board {
     constructor() {
         this.grid = [];
         this.reset();

@@ -8,8 +8,10 @@ export class Renderer {
     constructor() {
         this.gameCanvas = document.getElementById('game-canvas');
         this.nextCanvas = document.getElementById('next-canvas');
+        this.holdCanvas = document.getElementById('hold-canvas');
         this.gameCtx = this.gameCanvas.getContext('2d');
         this.nextCtx = this.nextCanvas.getContext('2d');
+        this.holdCtx = this.holdCanvas.getContext('2d');
     }
 
     /**
@@ -127,15 +129,40 @@ export class Renderer {
     }
 
     /**
+     * 绘制暂存方块预览
+     */
+    drawHoldPiece(piece) {
+        // 清空画布
+        this.holdCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        this.holdCtx.fillRect(0, 0, this.holdCanvas.width, this.holdCanvas.height);
+
+        if (!piece) return;
+
+        const shape = piece.getCurrentShape();
+        const offsetX = (this.holdCanvas.width - shape[0].length * NEXT_BLOCK_SIZE) / 2;
+        const offsetY = (this.holdCanvas.height - shape.length * NEXT_BLOCK_SIZE) / 2;
+
+        for (let row = 0; row < shape.length; row++) {
+            for (let col = 0; col < shape[row].length; col++) {
+                if (shape[row][col]) {
+                    const x = offsetX + col * NEXT_BLOCK_SIZE;
+                    const y = offsetY + row * NEXT_BLOCK_SIZE;
+                    this.drawBlock(this.holdCtx, x, y, NEXT_BLOCK_SIZE, piece.color);
+                }
+            }
+        }
+    }
+
+    /**
      * 渲染整个游戏画面
      */
     render(gameState) {
-        const { board, currentPiece, nextPiece } = gameState;
+        const { board, currentPiece, nextPiece, holdPiece } = gameState;
 
         // 绘制游戏面板
         this.drawBoard(board);
 
-        // 绘制方块影子
+        // 绘制方块影子 (幽灵方块)
         this.drawGhost(board, currentPiece);
 
         // 绘制当前方块
@@ -143,6 +170,9 @@ export class Renderer {
 
         // 绘制下一个方块
         this.drawNextPiece(nextPiece);
+
+        // 绘制暂存方块
+        this.drawHoldPiece(holdPiece);
     }
 
     /**
@@ -160,7 +190,7 @@ export class Renderer {
     /**
      * 显示游戏结束画面
      */
-    showGameOver(score, highScore, isNewRecord) {
+    showGameOver(score, highScore, isNewRecord, maxCombo = 0) {
         const overlay = document.getElementById('game-overlay');
         const title = document.getElementById('overlay-title');
         const message = document.getElementById('overlay-message');
@@ -169,6 +199,9 @@ export class Renderer {
         title.textContent = '游戏结束';
 
         let msg = `最终得分: ${score}<br>最高分: ${highScore}`;
+        if (maxCombo > 0) {
+            msg += `<br>最大连击: ${maxCombo}`;
+        }
         if (isNewRecord) {
             msg += '<br><span class="new-record">🎉 新纪录！</span>';
         }

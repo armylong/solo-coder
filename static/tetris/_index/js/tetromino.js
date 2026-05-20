@@ -106,7 +106,7 @@ export export class Tetromino {
  * 方块工厂类
  * 负责随机生成方块
  */
-export export class TetrominoFactory {
+export class TetrominoFactory {
     constructor() {
         this.types = Object.keys(TETROMINO_TYPES);
         this.bag = [];

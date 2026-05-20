@@ -1,5 +1,5 @@
 import { Auth } from '/static/_common/auth.js';
-
+import { GAME_STATE } from './constants.js';
 import { Game } from './game.js';
 import { Renderer } from './renderer.js';
 
@@ -79,6 +79,15 @@ class TetrisGame {
             case 'P':
                 e.preventDefault();
                 this.togglePause();
+                break;
+            case 'c':
+            case 'C':
+                e.preventDefault();
+                this.game.hold();
+                break;
+            case 'Shift':
+                e.preventDefault();
+                this.game.hold();
                 break;
         }
     }
@@ -204,7 +213,7 @@ class TetrisGame {
         if (state.gameState === GAME_STATE.GAME_OVER) {
             this.isRunning = false;
             const isNewRecord = state.score >= state.highScore && state.score > 0;
-            this.renderer.showGameOver(state.score, state.highScore, isNewRecord);
+            this.renderer.showGameOver(state.score, state.highScore, isNewRecord, state.maxCombo);
             return;
         }
 
