@@ -8,6 +8,7 @@ import (
 	"github.com/armylong/armylong-go/internal/cs/announcement"
 	"github.com/armylong/armylong-go/internal/middlewares"
 	announcementModel "github.com/armylong/armylong-go/internal/model/announcement"
+	"github.com/armylong/armylong-go/internal/model/user"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,7 +29,7 @@ func (c *AnnouncementController) ActionList(ctx *gin.Context, req *announcement.
 	}
 
 	userInfo := middlewares.GetLoginUser(ctx)
-	isAdmin := userInfo != nil && userInfo.UserPermission >= 100
+	isAdmin := userInfo != nil && userInfo.UserPermission >= user.UserPermissionAdmin
 
 	list, total, err := announcementBusiness.AnnouncementBusiness.List(ctx, req.Type, req.Status, req.Page, req.PageSize, uid, isAdmin)
 	if err != nil {
