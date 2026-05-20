@@ -71,7 +71,6 @@ func RegisterRouters(engine *gin.Engine) {
 	longgin.RegisterJsonController(adminGroup.Group("/business_route"), &ppzController.BusinessRouteController{})
 	longgin.RegisterJsonController(adminGroup.Group("/business_area_ext"), &ppzController.BusinessAreaControllerExt{})
 	longgin.RegisterJsonController(adminGroup.Group("/user_management"), &userController.UserManagementController{})
-	longgin.RegisterJsonController(adminGroup.Group("/announcement_admin"), &announcementController.AnnouncementAdminController{})
 
 	// ==================== 仅超级管理员 ====================
 	superAdminGroup := engine.Group("", middlewares.Middleware, middlewares.RequireSuperAdmin)

@@ -22,16 +22,62 @@ func getUid(ctx *gin.Context) (string, error) {
 	return fmt.Sprintf("%d", uid), nil
 }
 
+func isAdmin(ctx *gin.Context) bool {
+	userInfo := middlewares.GetLoginUser(ctx)
+	return userInfo != nil && userInfo.UserPermission >= user.UserPermissionAdmin
+}
+
+func (c *AnnouncementController) ActionCreate(ctx *gin.Context, req *announcement.CreateAnnouncementRequest) (map[string]int64, error) {
+	if !isAdmin(ctx) {
+		return nil, errors.New("只有管理员能创建公告")
+	}
+
+	uid, err := getUid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := announcementBusiness.AnnouncementBusiness.Create(ctx, req.Title, req.Content, req.Type, req.Priority, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]int64{"id": id}, nil
+}
+
+func (c *AnnouncementController) ActionPublish(ctx *gin.Context, req *announcement.PublishAnnouncementRequest) (map[string]string, error) {
+	if !isAdmin(ctx) {
+		return nil, errors.New("只有管理员能发布公告")
+	}
+
+	err := announcementBusiness.AnnouncementBusiness.Publish(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{"message": "发布成功"}, nil
+}
+
+func (c *AnnouncementController) ActionUnpublish(ctx *gin.Context, req *announcement.UnpublishAnnouncementRequest) (map[string]string, error) {
+	if !isAdmin(ctx) {
+		return nil, errors.New("只有管理员能下架公告")
+	}
+
+	err := announcementBusiness.AnnouncementBusiness.Unpublish(ctx, req.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{"message": "下架成功"}, nil
+}
+
 func (c *AnnouncementController) ActionList(ctx *gin.Context, req *announcement.ListAnnouncementRequest) (*announcement.ListAnnouncementResponse, error) {
 	uid, err := getUid(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	userInfo := middlewares.GetLoginUser(ctx)
-	isAdmin := userInfo != nil && userInfo.UserPermission >= user.UserPermissionAdmin
-
-	list, total, err := announcementBusiness.AnnouncementBusiness.List(ctx, req.Type, req.Status, req.Page, req.PageSize, uid, isAdmin)
+	list, total, err := announcementBusiness.AnnouncementBusiness.List(ctx, req.Type, req.Status, req.Page, req.PageSize, uid, isAdmin(ctx))
 	if err != nil {
 		return nil, err
 	}
@@ -46,44 +92,6 @@ func (c *AnnouncementController) ActionList(ctx *gin.Context, req *announcement.
 		List:  result,
 		Total: total,
 	}, nil
-}
-
-type AnnouncementAdminController struct{}
-
-func (c *AnnouncementAdminController) getUid(ctx *gin.Context) (string, error) {
-	return getUid(ctx)
-}
-
-func (c *AnnouncementAdminController) ActionCreate(ctx *gin.Context, req *announcement.CreateAnnouncementRequest) (map[string]int64, error) {
-	uid, err := c.getUid(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	id, err := announcementBusiness.AnnouncementBusiness.Create(ctx, req.Title, req.Content, req.Type, req.Priority, uid)
-	if err != nil {
-		return nil, err
-	}
-
-	return map[string]int64{"id": id}, nil
-}
-
-func (c *AnnouncementAdminController) ActionPublish(ctx *gin.Context, req *announcement.PublishAnnouncementRequest) (map[string]string, error) {
-	err := announcementBusiness.AnnouncementBusiness.Publish(ctx, req.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	return map[string]string{"message": "发布成功"}, nil
-}
-
-func (c *AnnouncementAdminController) ActionUnpublish(ctx *gin.Context, req *announcement.UnpublishAnnouncementRequest) (map[string]string, error) {
-	err := announcementBusiness.AnnouncementBusiness.Unpublish(ctx, req.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	return map[string]string{"message": "下架成功"}, nil
 }
 
 func (c *AnnouncementController) ActionDetail(ctx *gin.Context, req *announcement.DetailAnnouncementRequest) (*announcement.AnnouncementResponse, error) {
