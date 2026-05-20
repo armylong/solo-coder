@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	ppzCs "github.com/armylong/armylong-go/internal/cs/ppz"
+	ppzModel "github.com/armylong/armylong-go/internal/model/ppz"
 )
 
 func TestGetPpzUserInfo(t *testing.T) {
@@ -155,6 +156,40 @@ func TestCreateOrder(t *testing.T) {
 			t.Logf("正确返回错误: %v", err)
 		}
 	})
+
+	t.Run("已有进行中订单再创建", func(t *testing.T) {
+		activeUid := int64(2002)
+		firstReq := &ppzCs.CreateOrderRequest{
+			StartGaodeData: validGaodeData,
+			DestGaodeData:  validGaodeData,
+			DepartTime:     "2024-01-01 10:00",
+			TimeType:       1,
+			TimeFlex:       30,
+			PassengerCount: 2,
+			IsCharter:      0,
+		}
+		firstResp, firstErr := PpzBusiness.CreateOrder(ctx, activeUid, firstReq)
+		if firstErr != nil {
+			t.Fatalf("创建第一个订单失败: %v", firstErr)
+		}
+		t.Logf("第一个订单创建成功, OrderId=%d", firstResp.OrderId)
+
+		secondReq := &ppzCs.CreateOrderRequest{
+			StartGaodeData: validGaodeData,
+			DestGaodeData:  validGaodeData,
+			DepartTime:     "2024-01-01 14:00",
+			TimeType:       1,
+			TimeFlex:       30,
+			PassengerCount: 3,
+			IsCharter:      0,
+		}
+		secondResp, secondErr := PpzBusiness.CreateOrder(ctx, activeUid, secondReq)
+		if secondErr == nil {
+			t.Errorf("已有进行中订单时重复创建应返回错误，但得到成功: %+v", secondResp)
+		} else {
+			t.Logf("正确返回错误: %v", secondErr)
+		}
+	})
 }
 
 func TestCancelOrder(t *testing.T) {
@@ -199,6 +234,75 @@ func TestCancelOrder(t *testing.T) {
 			t.Errorf("期望返回错误，但得到成功: %+v", resp)
 		} else {
 			t.Logf("正确返回错误: %v", err)
+		}
+	})
+
+	t.Run("重复取消已取消的订单", func(t *testing.T) {
+		cancelUid := int64(3003)
+		validGaodeData := `{"lng":116.397428,"lat":39.90923,"name":"北京市"}`
+		createReq := &ppzCs.CreateOrderRequest{
+			StartGaodeData: validGaodeData,
+			DestGaodeData:  validGaodeData,
+			DepartTime:     "2024-01-01 10:00",
+			TimeType:       1,
+			TimeFlex:       30,
+			PassengerCount: 2,
+			IsCharter:      0,
+		}
+		createResp, createErr := PpzBusiness.CreateOrder(ctx, cancelUid, createReq)
+		if createErr != nil {
+			t.Fatalf("创建订单失败: %v", createErr)
+		}
+		orderId := createResp.OrderId
+		t.Logf("订单创建成功, OrderId=%d", orderId)
+
+		firstCancelReq := &ppzCs.CancelOrderRequest{OrderId: orderId}
+		firstCancelResp, firstCancelErr := PpzBusiness.CancelOrder(ctx, cancelUid, firstCancelReq)
+		if firstCancelErr != nil {
+			t.Fatalf("第一次取消订单失败: %v", firstCancelErr)
+		}
+		t.Logf("第一次取消订单成功: %+v", firstCancelResp)
+
+		secondCancelReq := &ppzCs.CancelOrderRequest{OrderId: orderId}
+		secondCancelResp, secondCancelErr := PpzBusiness.CancelOrder(ctx, cancelUid, secondCancelReq)
+		if secondCancelErr == nil {
+			t.Errorf("重复取消已取消的订单应返回错误，但得到成功: %+v", secondCancelResp)
+		} else {
+			t.Logf("正确返回错误: %v", secondCancelErr)
+		}
+	})
+
+	t.Run("司机已接单后取消", func(t *testing.T) {
+		acceptUid := int64(4004)
+		validGaodeData := `{"lng":116.397428,"lat":39.90923,"name":"北京市"}`
+		createReq := &ppzCs.CreateOrderRequest{
+			StartGaodeData: validGaodeData,
+			DestGaodeData:  validGaodeData,
+			DepartTime:     "2024-01-01 10:00",
+			TimeType:       1,
+			TimeFlex:       30,
+			PassengerCount: 2,
+			IsCharter:      0,
+		}
+		createResp, createErr := PpzBusiness.CreateOrder(ctx, acceptUid, createReq)
+		if createErr != nil {
+			t.Fatalf("创建订单失败: %v", createErr)
+		}
+		orderId := createResp.OrderId
+		t.Logf("订单创建成功, OrderId=%d", orderId)
+
+		err := ppzModel.TbPpzOrderModel.Accept(orderId, 1)
+		if err != nil {
+			t.Fatalf("设置订单为已接单状态失败: %v", err)
+		}
+		t.Logf("订单已设置为已接单状态")
+
+		cancelReq := &ppzCs.CancelOrderRequest{OrderId: orderId}
+		cancelResp, cancelErr := PpzBusiness.CancelOrder(ctx, acceptUid, cancelReq)
+		if cancelErr == nil {
+			t.Errorf("司机已接单后取消应返回错误，但得到成功: %+v", cancelResp)
+		} else {
+			t.Logf("正确返回错误: %v", cancelErr)
 		}
 	})
 }
@@ -279,6 +383,43 @@ func TestBanDriver(t *testing.T) {
 			t.Logf("封禁原因空时结果: %v", err)
 		} else {
 			t.Logf("封禁原因空时成功: %+v", resp)
+		}
+	})
+
+	t.Run("封禁后车辆审核状态变为驳回", func(t *testing.T) {
+		banUid := int64(5005)
+		_, _ = ppzModel.TbPpzUserModel.GetOrCreateByUid(banUid)
+
+		carAudit := &ppzModel.TbPpzCarAudit{
+			Uid:         banUid,
+			CarId:       1,
+			AuditData:   &ppzModel.CarAuditData{CarModel: "测试车型", Seats: 5},
+			AuditStatus: ppzModel.AuditStatusPending,
+		}
+		auditId, err := ppzModel.TbPpzCarAuditModel.Create(carAudit)
+		if err != nil {
+			t.Fatalf("创建车辆审核记录失败: %v", err)
+		}
+		t.Logf("车辆审核记录创建成功, AuditId=%d, AuditStatus=%d", auditId, ppzModel.AuditStatusPending)
+
+		banReq := &ppzCs.BanDriverRequest{
+			Uid:       banUid,
+			BanReason: "测试封禁，车辆审核应驳回",
+		}
+		banResp, banErr := PpzAdminBusiness.BanDriver(ctx, banReq)
+		if banErr != nil {
+			t.Fatalf("封禁司机失败: %v", banErr)
+		}
+		t.Logf("司机封禁成功: %+v", banResp)
+
+		updatedAudit, err := ppzModel.TbPpzCarAuditModel.GetById(auditId)
+		if err != nil {
+			t.Fatalf("查询更新后的审核记录失败: %v", err)
+		}
+		t.Logf("封禁后车辆审核状态: AuditStatus=%d (预期: %d=已驳回)", updatedAudit.AuditStatus, ppzModel.AuditStatusRejected)
+
+		if updatedAudit.AuditStatus != ppzModel.AuditStatusRejected {
+			t.Errorf("封禁后车辆审核状态应变为已驳回(%d)，但实际为%d", ppzModel.AuditStatusRejected, updatedAudit.AuditStatus)
 		}
 	})
 }
