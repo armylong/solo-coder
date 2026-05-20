@@ -18,7 +18,7 @@ export class Food {
 
         let newPosition;
         let attempts = 0;
-        const maxAttempts = cols * rows;
+        const maxAttempts = 100;
 
         do {
             newPosition = {
@@ -27,6 +27,23 @@ export class Food {
             };
             attempts++;
         } while (snake.occupiesPosition(newPosition.x, newPosition.y) && attempts < maxAttempts);
+
+        if (snake.occupiesPosition(newPosition.x, newPosition.y)) {
+            const emptyPositions = [];
+            for (let x = 0; x < cols; x++) {
+                for (let y = 0; y < rows; y++) {
+                    if (!snake.occupiesPosition(x, y)) {
+                        emptyPositions.push({ x, y });
+                    }
+                }
+            }
+
+            if (emptyPositions.length > 0) {
+                newPosition = emptyPositions[Math.floor(Math.random() * emptyPositions.length)];
+            } else {
+                return;
+            }
+        }
 
         this.position = newPosition;
     }

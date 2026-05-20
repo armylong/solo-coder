@@ -36,8 +36,8 @@ export class Snake {
 
     _isOppositeDirection(newDirection) {
         return (
-            (this.direction.x + newDirection.x === 0) &&
-            (this.direction.y + newDirection.y === 0)
+            (this.nextDirection.x + newDirection.x === 0) &&
+            (this.nextDirection.y + newDirection.y === 0)
         );
     }
 
@@ -53,7 +53,7 @@ export class Snake {
     }
 
     grow(tail) {
-        this.body.push(tail);
+        this.body.push({ x: tail.x, y: tail.y });
     }
 
     getHead() {

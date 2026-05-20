@@ -6,7 +6,7 @@
 import { Snake } from './snake.js';
 import { Food } from './food.js';
 import { Renderer } from './renderer.js';
-import { DIRECTIONS, GAME_STATES, GAME_SPEED } from './config.js';
+import { DIRECTIONS, GAME_STATES, GAME_SPEED, CELL_SIZE } from './config.js';
 
 export class Game {
     constructor(canvas) {
@@ -28,6 +28,8 @@ export class Game {
     }
 
     _resizeCanvas() {
+        const oldWidth = this.canvas.width;
+        const oldHeight = this.canvas.height;
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
 
@@ -36,6 +38,47 @@ export class Game {
             this.snake.canvasHeight = this.canvas.height;
             this.food.canvasWidth = this.canvas.width;
             this.food.canvasHeight = this.canvas.height;
+
+            const newCols = Math.floor(this.canvas.width / CELL_SIZE);
+            const newRows = Math.floor(this.canvas.height / CELL_SIZE);
+
+            let minX = Infinity, maxX = -Infinity;
+            let minY = Infinity, maxY = -Infinity;
+            for (const segment of this.snake.body) {
+                minX = Math.min(minX, segment.x);
+                maxX = Math.max(maxX, segment.x);
+                minY = Math.min(minY, segment.y);
+                maxY = Math.max(maxY, segment.y);
+            }
+
+            let offsetX = 0, offsetY = 0;
+            if (maxX >= newCols) {
+                offsetX = newCols - 1 - maxX;
+            }
+            if (minX < 0) {
+                offsetX = -minX;
+            }
+            if (maxY >= newRows) {
+                offsetY = newRows - 1 - maxY;
+            }
+            if (minY < 0) {
+                offsetY = -minY;
+            }
+
+            if (offsetX !== 0 || offsetY !== 0) {
+                for (const segment of this.snake.body) {
+                    segment.x += offsetX;
+                    segment.y += offsetY;
+                }
+            }
+
+            const foodPos = this.food.getPosition();
+            if (foodPos) {
+                if (foodPos.x < 0 || foodPos.x >= newCols ||
+                    foodPos.y < 0 || foodPos.y >= newRows) {
+                    this.food.generate(this.snake);
+                }
+            }
         }
     }
 
@@ -43,6 +86,9 @@ export class Game {
         if (this.state === GAME_STATES.PLAYING) {
             return;
         }
+
+        this.snake = null;
+        this.food = null;
 
         this.snake = new Snake(this.canvas.width, this.canvas.height);
         this.food = new Food(this.canvas.width, this.canvas.height);
