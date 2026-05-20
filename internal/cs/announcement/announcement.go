@@ -16,10 +16,10 @@ type UnpublishAnnouncementRequest struct {
 }
 
 type ListAnnouncementRequest struct {
-	Type     int `json:"type" form:"type"`
-	Status   int `json:"status" form:"status"`
-	Page     int `json:"page" form:"page"`
-	PageSize int `json:"pageSize" form:"pageSize"`
+	Type     int  `json:"type" form:"type"`
+	Status   *int `json:"status" form:"status"`
+	Page     int  `json:"page" form:"page"`
+	PageSize int  `json:"pageSize" form:"pageSize"`
 }
 
 type DetailAnnouncementRequest struct {

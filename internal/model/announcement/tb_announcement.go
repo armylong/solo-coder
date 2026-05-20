@@ -70,7 +70,7 @@ func (m *tbAnnouncementModel) UpdateStatus(id int64, status int) error {
 	return err
 }
 
-func (m *tbAnnouncementModel) ListByFilter(typ, status, page, pageSize int, isAdmin bool) ([]*TbAnnouncement, error) {
+func (m *tbAnnouncementModel) ListByFilter(typ int, status *int, page, pageSize int, isAdmin bool) ([]*TbAnnouncement, error) {
 	offset := (page - 1) * pageSize
 	whereClauses := make([]string, 0)
 	args := make([]interface{}, 0)
@@ -81,9 +81,9 @@ func (m *tbAnnouncementModel) ListByFilter(typ, status, page, pageSize int, isAd
 	}
 
 	if isAdmin {
-		if status >= 0 {
+		if status != nil {
 			whereClauses = append(whereClauses, "status = ?")
-			args = append(args, status)
+			args = append(args, *status)
 		}
 	} else {
 		whereClauses = append(whereClauses, "status = 1")
@@ -122,7 +122,7 @@ func (m *tbAnnouncementModel) ListByFilter(typ, status, page, pageSize int, isAd
 	return result, nil
 }
 
-func (m *tbAnnouncementModel) CountByFilter(typ, status int, isAdmin bool) (int, error) {
+func (m *tbAnnouncementModel) CountByFilter(typ int, status *int, isAdmin bool) (int, error) {
 	whereClauses := make([]string, 0)
 	args := make([]interface{}, 0)
 
@@ -132,9 +132,9 @@ func (m *tbAnnouncementModel) CountByFilter(typ, status int, isAdmin bool) (int,
 	}
 
 	if isAdmin {
-		if status >= 0 {
+		if status != nil {
 			whereClauses = append(whereClauses, "status = ?")
-			args = append(args, status)
+			args = append(args, *status)
 		}
 	} else {
 		whereClauses = append(whereClauses, "status = 1")

@@ -66,7 +66,7 @@ func (b *announcementBusiness) Unpublish(ctx context.Context, id int64) error {
 	return announcementModel.TbAnnouncementModel.UpdateStatus(id, 2)
 }
 
-func (b *announcementBusiness) List(ctx context.Context, typ, status, page, pageSize int, uid string, isAdmin bool) ([]*announcementModel.TbAnnouncement, int, error) {
+func (b *announcementBusiness) List(ctx context.Context, typ int, status *int, page, pageSize int, uid string, isAdmin bool) ([]*announcementModel.TbAnnouncement, int, error) {
 	if page < 1 {
 		page = 1
 	}
