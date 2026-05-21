@@ -1,9 +1,5 @@
 import { COLS, ROWS, BLOCK_SIZE, NEXT_BLOCK_SIZE, COLORS } from './constants.js';
 
-/**
- * 渲染器类
- * 负责Canvas绘制和游戏界面渲染
- */
 export class Renderer {
     constructor() {
         this.gameCanvas = document.getElementById('game-canvas');
@@ -14,44 +10,33 @@ export class Renderer {
         this.holdCtx = this.holdCanvas.getContext('2d');
     }
 
-    /**
-     * 绘制单个方块
-     */
     drawBlock(ctx, x, y, size, color, isGhost = false) {
         if (!color) return;
 
         if (isGhost) {
-            // 绘制影子（半透明边框）
             ctx.strokeStyle = color;
             ctx.lineWidth = 2;
             ctx.strokeRect(x + 2, y + 2, size - 4, size - 4);
-            ctx.fillStyle = color + '20'; // 20% 透明度
+            ctx.fillStyle = color + '20';
             ctx.fillRect(x + 2, y + 2, size - 4, size - 4);
         } else {
-            // 绘制实心方块
             ctx.fillStyle = color;
             ctx.fillRect(x, y, size, size);
 
-            // 绘制高光效果
             ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
             ctx.fillRect(x, y, size, 4);
             ctx.fillRect(x, y, 4, size);
 
-            // 绘制阴影效果
             ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
             ctx.fillRect(x, y + size - 4, size, 4);
             ctx.fillRect(x + size - 4, y, 4, size);
 
-            // 绘制边框
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
             ctx.lineWidth = 1;
             ctx.strokeRect(x, y, size, size);
         }
     }
 
-    /**
-     * 绘制游戏面板
-     */
     drawBoard(board) {
         const grid = board.getGrid();
 
@@ -61,15 +46,12 @@ export class Renderer {
                 const y = row * BLOCK_SIZE;
                 const color = grid[row][col];
 
-                // 清空格子
                 this.gameCtx.clearRect(x, y, BLOCK_SIZE, BLOCK_SIZE);
 
-                // 绘制网格线
                 this.gameCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
                 this.gameCtx.lineWidth = 1;
                 this.gameCtx.strokeRect(x, y, BLOCK_SIZE, BLOCK_SIZE);
 
-                // 绘制方块
                 if (color) {
                     this.drawBlock(this.gameCtx, x, y, BLOCK_SIZE, color);
                 }
@@ -77,9 +59,6 @@ export class Renderer {
         }
     }
 
-    /**
-     * 绘制当前方块
-     */
     drawPiece(piece, isGhost = false) {
         if (!piece) return;
 
@@ -93,9 +72,6 @@ export class Renderer {
         }
     }
 
-    /**
-     * 绘制方块影子
-     */
     drawGhost(board, piece) {
         if (!piece) return;
 
@@ -103,11 +79,7 @@ export class Renderer {
         this.drawPiece(ghost, true);
     }
 
-    /**
-     * 绘制下一个方块预览
-     */
     drawNextPiece(piece) {
-        // 清空画布
         this.nextCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
         this.nextCtx.fillRect(0, 0, this.nextCanvas.width, this.nextCanvas.height);
 
@@ -128,11 +100,7 @@ export class Renderer {
         }
     }
 
-    /**
-     * 绘制暂存方块预览
-     */
     drawHoldPiece(piece) {
-        // 清空画布
         this.holdCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
         this.holdCtx.fillRect(0, 0, this.holdCanvas.width, this.holdCanvas.height);
 
@@ -153,41 +121,28 @@ export class Renderer {
         }
     }
 
-    /**
-     * 渲染整个游戏画面
-     */
     render(gameState) {
         const { board, currentPiece, nextPiece, holdPiece, showTSpin, tSpinTimer } = gameState;
 
-        // 绘制游戏面板
         this.drawBoard(board);
 
-        // 绘制方块影子 (幽灵方块)
         this.drawGhost(board, currentPiece);
 
-        // 绘制当前方块
         this.drawPiece(currentPiece);
 
-        // 绘制下一个方块
         this.drawNextPiece(nextPiece);
 
-        // 绘制暂存方块
         this.drawHoldPiece(holdPiece);
 
-        // 绘制T-Spin文字动画
         if (showTSpin) {
             this.drawTSpinText(tSpinTimer);
         }
     }
 
-    /**
-     * 绘制T-Spin文字动画
-     */
     drawTSpinText(timer) {
         const centerX = this.gameCanvas.width / 2;
         const centerY = this.gameCanvas.height / 3;
         
-        // 计算透明度和缩放效果
         const progress = timer / 1500;
         const alpha = Math.min(1, progress * 2);
         const scale = 1 + (1 - progress) * 0.3;
@@ -197,22 +152,18 @@ export class Renderer {
         this.gameCtx.translate(centerX, centerY);
         this.gameCtx.scale(scale, scale);
         
-        // 绘制文字边框
         this.gameCtx.font = 'bold 36px Arial';
         this.gameCtx.textAlign = 'center';
         this.gameCtx.textBaseline = 'middle';
         
-        // 绘制阴影
         this.gameCtx.shadowColor = 'rgba(0, 0, 0, 0.5)';
         this.gameCtx.shadowBlur = 10;
         this.gameCtx.shadowOffsetX = 3;
         this.gameCtx.shadowOffsetY = 3;
         
-        // 绘制文字填充
         this.gameCtx.fillStyle = '#ffeb3b';
         this.gameCtx.fillText('T-SPIN!', 0, 0);
         
-        // 绘制文字描边
         this.gameCtx.strokeStyle = '#ff9800';
         this.gameCtx.lineWidth = 3;
         this.gameCtx.strokeText('T-SPIN!', 0, 0);
@@ -220,9 +171,6 @@ export class Renderer {
         this.gameCtx.restore();
     }
 
-    /**
-     * 更新UI显示
-     */
     updateUI(gameState) {
         const { score, lines, level, highScore } = gameState;
 
@@ -232,9 +180,6 @@ export class Renderer {
         document.getElementById('high-score').textContent = highScore;
     }
 
-    /**
-     * 显示游戏结束画面
-     */
     showGameOver(score, highScore, isNewRecord, maxCombo = 0) {
         const overlay = document.getElementById('game-overlay');
         const title = document.getElementById('overlay-title');
@@ -256,9 +201,6 @@ export class Renderer {
         overlay.classList.add('active');
     }
 
-    /**
-     * 显示暂停画面
-     */
     showPause() {
         const overlay = document.getElementById('game-overlay');
         const title = document.getElementById('overlay-title');
@@ -271,9 +213,6 @@ export class Renderer {
         overlay.classList.add('active');
     }
 
-    /**
-     * 隐藏覆盖层
-     */
     hideOverlay() {
         const overlay = document.getElementById('game-overlay');
         overlay.classList.remove('active');

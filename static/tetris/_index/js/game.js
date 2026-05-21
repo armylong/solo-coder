@@ -33,9 +33,6 @@ export class Game {
         this.tSpinTimer = 0;
     }
 
-    /**
-     * 开始游戏
-     */
     start() {
         this.board.reset();
         this.score = 0;
@@ -55,9 +52,6 @@ export class Game {
         this.lastUpdateTime = performance.now();
     }
 
-    /**
-     * 暂停/继续游戏
-     */
     togglePause() {
         if (this.state === GAME_STATE.PLAYING) {
             this.state = GAME_STATE.PAUSED;
@@ -68,16 +62,10 @@ export class Game {
         }
     }
 
-    /**
-     * 重新开始游戏
-     */
     restart() {
         this.start();
     }
 
-    /**
-     * 生成新方块
-     */
     spawnPiece() {
         if (this.nextPiece === null) {
             this.nextPiece = this.factory.create();
@@ -87,15 +75,11 @@ export class Game {
         this.canHold = true;
         this.lastRotation = false;
 
-        // 检查新方块是否可以放置
         if (!this.board.canPlace(this.currentPiece)) {
             this.gameOver();
         }
     }
 
-    /**
-     * 暂存方块
-     */
     hold() {
         if (!this.canHold || !this.currentPiece || this.state !== GAME_STATE.PLAYING) return false;
 
@@ -114,9 +98,6 @@ export class Game {
         return true;
     }
 
-    /**
-     * 游戏结束
-     */
     gameOver() {
         this.state = GAME_STATE.GAME_OVER;
         if (this.score > this.highScore) {
@@ -125,9 +106,6 @@ export class Game {
         }
     }
 
-    /**
-     * 更新游戏状态
-     */
     update(timestamp) {
         if (this.state !== GAME_STATE.PLAYING) {
             return;
@@ -152,9 +130,6 @@ export class Game {
         }
     }
 
-    /**
-     * 方块下落
-     */
     drop() {
         if (!this.currentPiece) return;
 
@@ -166,9 +141,6 @@ export class Game {
         }
     }
 
-    /**
-     * 硬降（直接落到底部）
-     */
     hardDrop() {
         if (!this.currentPiece || this.state !== GAME_STATE.PLAYING) return;
 
@@ -179,9 +151,6 @@ export class Game {
         this.lockPiece();
     }
 
-    /**
-     * 检测T-Spin
-     */
     detectTSpin(piece) {
         if (piece.type !== TETROMINO_TYPES.T) return false;
 
@@ -203,9 +172,6 @@ export class Game {
         return filledCorners >= 3 && this.lastRotation;
     }
 
-    /**
-     * 锁定方块并处理消行
-     */
     lockPiece() {
         const isTSpin = this.detectTSpin(this.currentPiece);
         this.board.place(this.currentPiece);
@@ -241,9 +207,6 @@ export class Game {
         }
     }
 
-    /**
-     * 更新等级
-     */
     updateLevel() {
         const newLevel = Math.floor(this.lines / LINES_PER_LEVEL) + 1;
         if (newLevel > this.level) {
@@ -252,16 +215,12 @@ export class Game {
         }
     }
 
-    /**
-     * 旋转方块（带踢墙）
-     */
     rotate() {
         if (this.state !== GAME_STATE.PLAYING || !this.currentPiece) return;
 
         const originalX = this.currentPiece.x;
         this.currentPiece.rotate();
 
-        // 尝试踢墙
         const kicks = [0, -1, 1, -2, 2];
         for (const kick of kicks) {
             this.currentPiece.x = originalX + kick;
@@ -271,15 +230,11 @@ export class Game {
             }
         }
 
-        // 无法旋转，回退
         this.currentPiece.rotateBack();
         this.currentPiece.x = originalX;
         this.lastRotation = false;
     }
 
-    /**
-     * 向左移动
-     */
     moveLeft() {
         if (this.state !== GAME_STATE.PLAYING || !this.currentPiece) return;
 
@@ -291,9 +246,6 @@ export class Game {
         }
     }
 
-    /**
-     * 向右移动
-     */
     moveRight() {
         if (this.state !== GAME_STATE.PLAYING || !this.currentPiece) return;
 
@@ -305,16 +257,10 @@ export class Game {
         }
     }
 
-    /**
-     * 设置软降状态
-     */
     setSoftDropping(isSoftDropping) {
         this.isSoftDropping = isSoftDropping;
     }
 
-    /**
-     * 从localStorage加载最高分
-     */
     loadHighScore() {
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
@@ -324,9 +270,6 @@ export class Game {
         }
     }
 
-    /**
-     * 保存最高分到localStorage
-     */
     saveHighScore() {
         try {
             localStorage.setItem(STORAGE_KEY, this.highScore.toString());
@@ -335,9 +278,6 @@ export class Game {
         }
     }
 
-    /**
-     * 获取游戏状态
-     */
     getState() {
         return {
             board: this.board,
