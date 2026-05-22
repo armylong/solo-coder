@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天气时钟</title>
+    <link rel="stylesheet" href="/static/_common/style.css">
+    <link rel="stylesheet" href="_index/css/style.css">
+</head>
+<body>
+    <div class="theme-toggle-container">
+        <button id="themeToggle">
+            <span class="theme-icon">🌓</span>
+            <span class="theme-text">切换主题</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="clock-section">
+            <canvas id="clockCanvas"></canvas>
+            <div class="digital-time">
+                <div id="digitalTime">00:00:00</div>
+                <div id="digitalDate">2024年01月01日 星期一</div>
+            </div>
+        </div>
+
+        <div class="weather-section">
+            <div id="weatherContainer">
+                <div class="weather-main">
+                    <span id="weatherIcon">🌤️</span>
+                    <div class="weather-temp-desc">
+                        <div id="temperature">--°C</div>
+                        <div id="weatherDesc">--</div>
+                    </div>
+                </div>
+                <div class="weather-details">
+                    <div class="weather-detail-item">
+                        <span id="humidity">湿度: --%</span>
+                    </div>
+                    <div class="weather-detail-item">
+                        <span id="windSpeed">风速: -- km/h</span>
+                    </div>
+                </div>
+            </div>
+            <div id="weatherError">天气数据获取中...</div>
+        </div>
+    </div>
+
+    <script type="module" src="_index/js/main.js"></script>
+</body>
+</html>

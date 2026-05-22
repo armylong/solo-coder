@@ -123,3 +123,9 @@ solar-system:
   type: app
   permission: user
   desc: Three.js 太阳系3D模拟
+
+weather-clock:
+  name_cn: 天气时钟
+  type: app
+  permission: user
+  desc: 天气与时钟桌面小组件
