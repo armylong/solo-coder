@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	yangfenBusiness "github.com/armylong/armylong-go/internal/business/yangfen"
-	"github.com/armylong/armylong-go/internal/middlewares"
 	yangfenCs "github.com/armylong/armylong-go/internal/cs/yangfen"
+	"github.com/armylong/armylong-go/internal/middlewares"
 	"github.com/gin-gonic/gin"
 )
 
@@ -190,4 +190,34 @@ func convertTransactions(transactions []map[string]any) []yangfenCs.TransactionR
 		result = append(result, record)
 	}
 	return result
+}
+
+// 获取排行榜
+func (c *YangfenController) ActionGetLeaderboard(ctx *gin.Context, req *yangfenCs.GetLeaderboardRequest) (*yangfenCs.GetLeaderboardResponse, error) {
+	topN := req.TopN
+	if topN <= 0 {
+		topN = 10
+	}
+	if topN > 100 {
+		topN = 100
+	}
+
+	leaderboard, err := yangfenBusiness.YangfenBusiness.GetLeaderboard(ctx, topN)
+	if err != nil {
+		return nil, err
+	}
+
+	rankList := make([]yangfenCs.LeaderboardItem, 0, len(leaderboard))
+	for _, item := range leaderboard {
+		rankList = append(rankList, yangfenCs.LeaderboardItem{
+			Rank:    item.Rank,
+			Uid:     item.Uid,
+			Name:    item.Name,
+			Balance: item.Balance,
+		})
+	}
+
+	return &yangfenCs.GetLeaderboardResponse{
+		RankList: rankList,
+	}, nil
 }

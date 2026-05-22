@@ -78,3 +78,10 @@ func (m *tbYangfenBalanceModel) UpdateBalance(uid string, balance int) error {
 func (m *tbYangfenBalanceModel) Delete(uid string) error {
 	return sqlite.DB.DeleteByWhere(m.TableName(), "uid = ?", uid)
 }
+
+// 查询余额排行榜
+func (m *tbYangfenBalanceModel) GetLeaderboard(topN int) ([]*TbYangfenBalance, error) {
+	var list []*TbYangfenBalance
+	err := sqlite.DB.Find(m.TableName(), &list, "1=1 ORDER BY balance DESC LIMIT ?", topN)
+	return list, err
+}

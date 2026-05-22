@@ -61,3 +61,21 @@ type TransactionListResponse struct {
 	List  []TransactionRecord `json:"list"`  // 交易记录列表
 	Total int                 `json:"total"` // 总数
 }
+
+// 排行榜-请求
+type GetLeaderboardRequest struct {
+	TopN int `json:"topN" form:"topN"` // 前N名，默认10，最大100
+}
+
+// 排行榜项
+type LeaderboardItem struct {
+	Rank    int    `json:"rank"`    // 排名
+	Uid     string `json:"uid"`     // 用户ID
+	Name    string `json:"name"`    // 用户名
+	Balance int    `json:"balance"` // 余额
+}
+
+// 排行榜-响应
+type GetLeaderboardResponse struct {
+	RankList []LeaderboardItem `json:"rankList"` // 排名列表
+}

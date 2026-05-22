@@ -2,11 +2,18 @@ package yangfen
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
+	"github.com/armylong/armylong-go/internal/common/webcache"
+	userModel "github.com/armylong/armylong-go/internal/model/user"
 	yangfenModel "github.com/armylong/armylong-go/internal/model/yangfen"
 )
+
+const leaderboardCacheKey = "yangfen:leaderboard"
+const leaderboardCacheExpire = 5 * time.Minute
 
 type yangfenBusiness struct{}
 
@@ -172,4 +179,64 @@ func (b *yangfenBusiness) ClearData(ctx context.Context, uid string) error {
 	yangfenModel.TbYangfenBalanceModel.Delete(uid)
 	yangfenModel.TbYangfenTransactionModel.DeleteByUid(uid)
 	return nil
+}
+
+// 排行榜项
+type LeaderboardItem struct {
+	Rank    int    `json:"rank"`
+	Uid     string `json:"uid"`
+	Name    string `json:"name"`
+	Balance int    `json:"balance"`
+}
+
+// 获取排行榜
+func (b *yangfenBusiness) GetLeaderboard(ctx context.Context, topN int) ([]LeaderboardItem, error) {
+	if topN <= 0 {
+		topN = 10
+	}
+	if topN > 100 {
+		topN = 100
+	}
+
+	cacheData, err := webcache.RedisClient.Get(ctx, leaderboardCacheKey).Result()
+	if err == nil && cacheData != "" {
+		var result []LeaderboardItem
+		if jsonErr := json.Unmarshal([]byte(cacheData), &result); jsonErr == nil {
+			if len(result) > topN {
+				return result[:topN], nil
+			}
+			return result, nil
+		}
+	}
+
+	balances, err := yangfenModel.TbYangfenBalanceModel.GetLeaderboard(topN)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]LeaderboardItem, 0, len(balances))
+	for i, balance := range balances {
+		name := ""
+		uidInt, parseErr := strconv.ParseInt(balance.Uid, 10, 64)
+		if parseErr == nil {
+			user, userErr := userModel.TbUserModel.GetByUid(uidInt)
+			if userErr == nil && user != nil {
+				name = user.Name
+			}
+		}
+
+		result = append(result, LeaderboardItem{
+			Rank:    i + 1,
+			Uid:     balance.Uid,
+			Name:    name,
+			Balance: balance.Balance,
+		})
+	}
+
+	jsonData, jsonErr := json.Marshal(result)
+	if jsonErr == nil {
+		webcache.RedisClient.Set(ctx, leaderboardCacheKey, string(jsonData), leaderboardCacheExpire)
+	}
+
+	return result, nil
 }

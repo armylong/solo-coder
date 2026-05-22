@@ -1,6 +1,7 @@
 import { Auth } from '/static/_common/auth.js';
 
 const API_BASE = 'http://localhost/yangfen';
+let leaderboardTimer = null;
 
 // 初始化页面
 async function init() {
@@ -15,9 +16,54 @@ async function init() {
         document.getElementById('uidDisplay').textContent = user.uid;
         refreshBalance();
         refreshTransactions();
+        initTabs();
     } else {
         alert('获取用户信息失败');
         window.close();
+    }
+}
+
+// 初始化Tab
+function initTabs() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            switchTab(tab);
+        });
+    });
+}
+
+// 切换Tab
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+    });
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.toggle('active', pane.id === tabName);
+    });
+
+    if (tabName === 'leaderboard') {
+        refreshLeaderboard();
+        startLeaderboardAutoRefresh();
+    } else {
+        stopLeaderboardAutoRefresh();
+    }
+}
+
+// 开始排行榜自动刷新
+function startLeaderboardAutoRefresh() {
+    stopLeaderboardAutoRefresh();
+    leaderboardTimer = setInterval(() => {
+        refreshLeaderboard();
+    }, 30000);
+}
+
+// 停止排行榜自动刷新
+function stopLeaderboardAutoRefresh() {
+    if (leaderboardTimer) {
+        clearInterval(leaderboardTimer);
+        leaderboardTimer = null;
     }
 }
 
@@ -185,6 +231,50 @@ async function clearData() {
     refreshTransactions();
 }
 
+// 刷新排行榜
+async function refreshLeaderboard() {
+    const list = document.getElementById('leaderboardList');
+    list.innerHTML = '<div class="empty-state">加载中...</div>';
+
+    try {
+        const data = await Auth.fetchApi(API_BASE, 'getLeaderboard', { topN: 50 });
+
+        if (data.responseData && data.responseData.rankList && data.responseData.rankList.length > 0) {
+            list.innerHTML = data.responseData.rankList.map(item => {
+                let rankEmoji = '';
+                if (item.rank === 1) {
+                    rankEmoji = '🥇';
+                } else if (item.rank === 2) {
+                    rankEmoji = '🥈';
+                } else if (item.rank === 3) {
+                    rankEmoji = '🥉';
+                } else {
+                    rankEmoji = `#${item.rank}`;
+                }
+
+                const name = item.name || `用户${item.uid}`;
+                const rankClass = item.rank <= 3 ? 'top-rank' : '';
+
+                return `
+                    <div class="leaderboard-item ${rankClass}">
+                        <div class="leaderboard-rank">${rankEmoji}</div>
+                        <div class="leaderboard-info">
+                            <div class="leaderboard-name">${name}</div>
+                            <div class="leaderboard-uid">UID: ${item.uid}</div>
+                        </div>
+                        <div class="leaderboard-balance">${item.balance} 氧分</div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            list.innerHTML = '<div class="empty-state">暂无排行数据</div>';
+        }
+    } catch (error) {
+        console.error('获取排行榜失败:', error);
+        list.innerHTML = '<div class="empty-state">获取排行榜失败</div>';
+    }
+}
+
 window.quickRecharge = quickRecharge;
 window.quickConsume = quickConsume;
 window.quickRefund = quickRefund;
@@ -193,5 +283,6 @@ window.consume = consume;
 window.transfer = transfer;
 window.refund = refund;
 window.clearData = clearData;
+window.refreshLeaderboard = refreshLeaderboard;
 
 init();
