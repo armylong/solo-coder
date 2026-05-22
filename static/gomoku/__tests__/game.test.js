@@ -138,14 +138,17 @@ describe('Game', () => {
   });
 
   test('棋盘满时判定平局', () => {
-    let player = PLAYERS.BLACK;
     for (let i = 0; i < BOARD_SIZE; i++) {
       for (let j = 0; j < BOARD_SIZE; j++) {
         if (i === BOARD_SIZE - 1 && j === BOARD_SIZE - 1) {
           continue;
         }
-        game.board.set(i, j, player);
-        player = player === PLAYERS.BLACK ? PLAYERS.WHITE : PLAYERS.BLACK;
+        const rowPattern = i % 2 === 0 ? (j % 4 < 2) : (j % 4 >= 2);
+        if (rowPattern) {
+          game.board.set(i, j, PLAYERS.BLACK);
+        } else {
+          game.board.set(i, j, PLAYERS.WHITE);
+        }
       }
     }
     game._makeMove(BOARD_SIZE - 1, BOARD_SIZE - 1);

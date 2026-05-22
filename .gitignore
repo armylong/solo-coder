@@ -4,4 +4,4 @@ vendor
 conf/*
 .vscode
 __debug*
-armylong-go
+armylong-gonode_modules/
