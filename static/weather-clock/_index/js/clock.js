@@ -55,7 +55,7 @@ export class Clock {
 
   drawTicks() {
     for (let i = 0; i < 60; i++) {
-      const angle = (i * Math.PI) / 30;
+      const angle = (i * Math.PI) / 30 - Math.PI / 2;
       const isHour = i % 5 === 0;
       const innerRadius = isHour ? this.radius - 25 : this.radius - 15;
       const outerRadius = this.radius - 8;
