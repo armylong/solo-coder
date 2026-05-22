@@ -4,11 +4,16 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	ppzModel "github.com/armylong/armylong-go/internal/model/ppz"
 )
 
 // 获取用户信息-请求
 type GetPpzUserInfoRequest struct{}
+
+func (r *GetPpzUserInfoRequest) Validate() error {
+	return nil
+}
 
 // 获取用户信息-响应
 type GetPpzUserInfoResponse struct {
@@ -27,6 +32,25 @@ type AddMyCarRequest struct {
 	Seats              int    `json:"seats" form:"seats"`                               // 乘客座位数
 	CarPhoto           string `json:"car_photo" form:"car_photo"`                       // 车辆照片
 	Description        string `json:"description" form:"description"`                   // 车辆简介
+}
+
+func (r *AddMyCarRequest) Validate() error {
+	if r.CarModel == "" {
+		return errcode.InvalidParam("车型不能为空")
+	}
+	if r.LicensePlate == "" {
+		return errcode.InvalidParam("车牌号不能为空")
+	}
+	if r.Seats <= 0 {
+		return errcode.InvalidParam("座位数必须大于0")
+	}
+	if r.CarLicensePhoto == "" {
+		return errcode.InvalidParam("行驶证照片不能为空")
+	}
+	if r.DriverLicensePhoto == "" {
+		return errcode.InvalidParam("驾驶证照片不能为空")
+	}
+	return nil
 }
 
 // 添加车辆-响应
@@ -49,6 +73,22 @@ type EditMyCarRequest struct {
 	Description        string `json:"description" form:"description"`                   // 车辆简介
 }
 
+func (r *EditMyCarRequest) Validate() error {
+	if r.AuditId <= 0 && r.CarId <= 0 {
+		return errcode.InvalidParam("审核记录ID或车辆ID不能为空")
+	}
+	if r.CarModel == "" {
+		return errcode.InvalidParam("车型不能为空")
+	}
+	if r.LicensePlate == "" {
+		return errcode.InvalidParam("车牌号不能为空")
+	}
+	if r.Seats <= 0 {
+		return errcode.InvalidParam("座位数必须大于0")
+	}
+	return nil
+}
+
 // 编辑车辆-响应
 type EditMyCarResponse struct {
 	AuditId int64 `json:"audit_id"` // 审核记录ID
@@ -59,6 +99,10 @@ type EditMyCarResponse struct {
 type GetMyCarsRequest struct {
 	ReviewStatus int `json:"review_status" form:"review_status"` // 审核状态（兼容旧版）
 	AuditStatus  int `json:"audit_status" form:"audit_status"`   // 审核状态: 0-全部 1-待审核 2-已通过 3-已驳回
+}
+
+func (r *GetMyCarsRequest) Validate() error {
+	return nil
 }
 
 // 车辆审核详情
@@ -93,6 +137,13 @@ type DeleteMyCarRequest struct {
 	CarId   int64 `json:"car_id" form:"car_id"`     // 车辆ID（兼容旧版）
 }
 
+func (r *DeleteMyCarRequest) Validate() error {
+	if r.AuditId <= 0 && r.CarId <= 0 {
+		return errcode.InvalidParam("审核记录ID或车辆ID不能为空")
+	}
+	return nil
+}
+
 // 删除车辆-响应
 type DeleteMyCarResponse struct{}
 
@@ -103,6 +154,10 @@ type CheckDriverResponse struct {
 
 // 概览统计-请求
 type OverviewStatsRequest struct{}
+
+func (r *OverviewStatsRequest) Validate() error {
+	return nil
+}
 
 // 概览统计-响应
 type OverviewStatsResponse struct {
@@ -116,6 +171,19 @@ type DriverListRequest struct {
 	Page     int `json:"page" form:"page"`           // 页码，从1开始
 	PageSize int `json:"page_size" form:"page_size"` // 每页条数
 	Status   int `json:"status" form:"status"`       // 状态: 0-全部 1-正常 2-已封禁
+}
+
+func (r *DriverListRequest) Validate() error {
+	if r.Page <= 0 {
+		r.Page = 1
+	}
+	if r.PageSize <= 0 {
+		r.PageSize = 10
+	}
+	if r.PageSize > 100 {
+		r.PageSize = 100
+	}
+	return nil
 }
 
 // 司机信息
@@ -153,12 +221,29 @@ type BanDriverRequest struct {
 	BanReason string `json:"ban_reason" form:"ban_reason"` // 封禁原因
 }
 
+func (r *BanDriverRequest) Validate() error {
+	if r.Uid <= 0 {
+		return errcode.InvalidParam("用户ID不能为空")
+	}
+	if r.BanReason == "" {
+		return errcode.InvalidParam("封禁原因不能为空")
+	}
+	return nil
+}
+
 // 封禁司机-响应
 type BanDriverResponse struct{}
 
 // 解封司机-请求
 type UnbanDriverRequest struct {
 	Uid int64 `json:"uid" form:"uid"` // 用户ID
+}
+
+func (r *UnbanDriverRequest) Validate() error {
+	if r.Uid <= 0 {
+		return errcode.InvalidParam("用户ID不能为空")
+	}
+	return nil
 }
 
 // 解封司机-响应
@@ -170,6 +255,13 @@ type GetCarDetailRequest struct {
 	CarId   int64 `json:"car_id" form:"car_id"`     // 车辆ID（兼容旧版）
 }
 
+func (r *GetCarDetailRequest) Validate() error {
+	if r.AuditId <= 0 && r.CarId <= 0 {
+		return errcode.InvalidParam("审核记录ID或车辆ID不能为空")
+	}
+	return nil
+}
+
 // 车辆详情-响应
 type GetCarDetailResponse struct {
 	Car *CarAuditDetail `json:"car"` // 车辆详情
@@ -177,6 +269,10 @@ type GetCarDetailResponse struct {
 
 // 车辆审核统计-请求
 type CarAuditOverviewStatsRequest struct{}
+
+func (r *CarAuditOverviewStatsRequest) Validate() error {
+	return nil
+}
 
 // 车辆审核统计-响应
 type CarAuditOverviewStatsResponse struct {
@@ -187,13 +283,26 @@ type CarAuditOverviewStatsResponse struct {
 
 // 车辆审核列表-请求
 type CarAuditListRequest struct {
-	Page        int    `json:"page" form:"page"`                   // 页码，从1开始
-	PageSize    int    `json:"page_size" form:"page_size"`         // 每页条数
-	AuditStatus int    `json:"audit_status" form:"audit_status"`   // 审核状态: 0-全部 1-待审核 2-已通过 3-已驳回
-	Uid         int64  `json:"uid" form:"uid"`                     // 用户ID筛选
-	Account     string `json:"account" form:"account"`             // 账号筛选
-	Name        string `json:"name" form:"name"`                   // 姓名筛选
-	Phone       string `json:"phone" form:"phone"`                 // 手机号筛选
+	Page        int    `json:"page" form:"page"`                 // 页码，从1开始
+	PageSize    int    `json:"page_size" form:"page_size"`       // 每页条数
+	AuditStatus int    `json:"audit_status" form:"audit_status"` // 审核状态: 0-全部 1-待审核 2-已通过 3-已驳回
+	Uid         int64  `json:"uid" form:"uid"`                   // 用户ID筛选
+	Account     string `json:"account" form:"account"`           // 账号筛选
+	Name        string `json:"name" form:"name"`                 // 姓名筛选
+	Phone       string `json:"phone" form:"phone"`               // 手机号筛选
+}
+
+func (r *CarAuditListRequest) Validate() error {
+	if r.Page <= 0 {
+		r.Page = 1
+	}
+	if r.PageSize <= 0 {
+		r.PageSize = 10
+	}
+	if r.PageSize > 100 {
+		r.PageSize = 100
+	}
+	return nil
 }
 
 // 审核列表中的司机项
@@ -233,6 +342,13 @@ type ApproveCarAuditRequest struct {
 	AuditReason string `json:"audit_reason" form:"audit_reason"` // 审核理由
 }
 
+func (r *ApproveCarAuditRequest) Validate() error {
+	if r.AuditId <= 0 {
+		return errcode.InvalidParam("审核记录ID不能为空")
+	}
+	return nil
+}
+
 // 审核通过-响应
 type ApproveCarAuditResponse struct{}
 
@@ -242,11 +358,25 @@ type RejectCarAuditRequest struct {
 	AuditReason string `json:"audit_reason" form:"audit_reason"` // 审核理由
 }
 
+func (r *RejectCarAuditRequest) Validate() error {
+	if r.AuditId <= 0 {
+		return errcode.InvalidParam("审核记录ID不能为空")
+	}
+	if r.AuditReason == "" {
+		return errcode.InvalidParam("驳回理由不能为空")
+	}
+	return nil
+}
+
 // 审核驳回-响应
 type RejectCarAuditResponse struct{}
 
 // 地址选择器数据-请求
 type AddressPickerDataRequest struct{}
+
+func (r *AddressPickerDataRequest) Validate() error {
+	return nil
+}
 
 // 最近地址项
 type RecentAddressItem struct {
@@ -257,7 +387,7 @@ type RecentAddressItem struct {
 type AddressPickerDataResponse struct {
 	RecentStart []*RecentAddressItem `json:"recent_start"` // 最近出发地
 	RecentDest  []*RecentAddressItem `json:"recent_dest"`  // 最近目的地
-	SavedList   []*AddressListItem  `json:"saved_list"`   // 收藏地址
+	SavedList   []*AddressListItem   `json:"saved_list"`   // 收藏地址
 }
 
 // 创建订单-请求
@@ -271,6 +401,22 @@ type CreateOrderRequest struct {
 	IsCharter      int    `json:"is_charter" form:"is_charter"`             // 是否包车: 0-否 1-是
 }
 
+func (r *CreateOrderRequest) Validate() error {
+	if r.StartGaodeData == "" {
+		return errcode.InvalidParam("请选择出发地")
+	}
+	if r.DestGaodeData == "" {
+		return errcode.InvalidParam("请选择目的地")
+	}
+	if r.DepartTime == "" {
+		return errcode.InvalidParam("请选择出发时间")
+	}
+	if r.PassengerCount <= 0 {
+		return errcode.InvalidParam("请选择乘车人数")
+	}
+	return nil
+}
+
 // 创建订单-响应
 type CreateOrderResponse struct {
 	OrderId int64 `json:"order_id"` // 订单ID
@@ -281,24 +427,35 @@ type CancelOrderRequest struct {
 	OrderId int64 `json:"order_id" form:"order_id"` // 订单ID
 }
 
+func (r *CancelOrderRequest) Validate() error {
+	if r.OrderId <= 0 {
+		return errcode.InvalidParam("订单ID无效")
+	}
+	return nil
+}
+
 // 取消订单-响应
 type CancelOrderResponse struct{}
 
 // 匹配中订单-请求
 type GetMatchingOrdersRequest struct{}
 
+func (r *GetMatchingOrdersRequest) Validate() error {
+	return nil
+}
+
 // 订单简要信息
 type OrderBriefItem struct {
-	OrderId        int64                  `json:"order_id"`          // 订单ID
+	OrderId        int64                    `json:"order_id"`         // 订单ID
 	StartGaodeData *ppzModel.OrderGaodeData `json:"start_gaode_data"` // 出发地
 	DestGaodeData  *ppzModel.OrderGaodeData `json:"dest_gaode_data"`  // 目的地
-	DepartTime     string                 `json:"depart_time"`       // 出发时间
-	TimeType       int                    `json:"time_type"`         // 时间类型
-	TimeFlex       int                    `json:"time_flex"`         // 时间弹性
-	PassengerCount int                    `json:"passenger_count"`   // 乘客数
-	IsCharter      int                    `json:"is_charter"`        // 是否包车
-	OrderStatus    int                    `json:"order_status"`      // 订单状态
-	CreatedAt      time.Time              `json:"created_at"`
+	DepartTime     string                   `json:"depart_time"`      // 出发时间
+	TimeType       int                      `json:"time_type"`        // 时间类型
+	TimeFlex       int                      `json:"time_flex"`        // 时间弹性
+	PassengerCount int                      `json:"passenger_count"`  // 乘客数
+	IsCharter      int                      `json:"is_charter"`       // 是否包车
+	OrderStatus    int                      `json:"order_status"`     // 订单状态
+	CreatedAt      time.Time                `json:"created_at"`
 }
 
 // 匹配中订单-响应
@@ -309,24 +466,28 @@ type GetMatchingOrdersResponse struct {
 // 我的行程-请求
 type GetMyTripsRequest struct{}
 
+func (r *GetMyTripsRequest) Validate() error {
+	return nil
+}
+
 // 行程中的订单项
 type TripOrderItem struct {
-	OrderId        int64                  `json:"order_id"`          // 订单ID
+	OrderId        int64                    `json:"order_id"`         // 订单ID
 	StartGaodeData *ppzModel.OrderGaodeData `json:"start_gaode_data"` // 出发地
 	DestGaodeData  *ppzModel.OrderGaodeData `json:"dest_gaode_data"`  // 目的地
-	DepartTime     string                 `json:"depart_time"`       // 出发时间
-	TimeType       int                    `json:"time_type"`         // 时间类型
-	TimeFlex       int                    `json:"time_flex"`         // 时间弹性
-	PassengerCount int                    `json:"passenger_count"`   // 乘客数
-	IsCharter      int                    `json:"is_charter"`        // 是否包车
-	OrderStatus    int                    `json:"order_status"`      // 订单状态
+	DepartTime     string                   `json:"depart_time"`      // 出发时间
+	TimeType       int                      `json:"time_type"`        // 时间类型
+	TimeFlex       int                      `json:"time_flex"`        // 时间弹性
+	PassengerCount int                      `json:"passenger_count"`  // 乘客数
+	IsCharter      int                      `json:"is_charter"`       // 是否包车
+	OrderStatus    int                      `json:"order_status"`     // 订单状态
 }
 
 // 行程项
 type TripItem struct {
-	TripId   int64            `json:"trip_id"`   // 行程ID
-	Status   int              `json:"status"`    // 行程状态
-	Orders   []*TripOrderItem `json:"orders"`    // 行程下的订单
+	TripId int64            `json:"trip_id"` // 行程ID
+	Status int              `json:"status"`  // 行程状态
+	Orders []*TripOrderItem `json:"orders"`  // 行程下的订单
 }
 
 // 我的行程-响应

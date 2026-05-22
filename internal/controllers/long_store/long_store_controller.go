@@ -4,7 +4,7 @@ import (
 	"context"
 
 	longStoreBiz "github.com/armylong/armylong-go/internal/business/long_store"
-	"github.com/armylong/armylong-go/internal/middlewares"
+	"github.com/armylong/armylong-go/internal/common/ctxhelper"
 	longStoreCs "github.com/armylong/armylong-go/internal/cs/long_store"
 )
 
@@ -13,7 +13,7 @@ type LongStoreController struct{}
 
 // 获取应用列表
 func (c *LongStoreController) ActionList(ctx context.Context, req *longStoreCs.AppListRequest) (*longStoreCs.AppListResponse, error) {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil, nil
 	}
@@ -22,7 +22,7 @@ func (c *LongStoreController) ActionList(ctx context.Context, req *longStoreCs.A
 
 // 安装应用
 func (c *LongStoreController) ActionInstall(ctx context.Context, req *longStoreCs.InstallAppRequest) error {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil
 	}
@@ -32,7 +32,7 @@ func (c *LongStoreController) ActionInstall(ctx context.Context, req *longStoreC
 
 // 卸载应用
 func (c *LongStoreController) ActionUninstall(ctx context.Context, req *longStoreCs.UninstallAppRequest) error {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil
 	}
@@ -42,7 +42,7 @@ func (c *LongStoreController) ActionUninstall(ctx context.Context, req *longStor
 
 // 添加应用（超管）
 func (c *LongStoreController) ActionAdd(ctx context.Context, req *longStoreCs.AddAppRequest) error {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil
 	}
@@ -52,7 +52,7 @@ func (c *LongStoreController) ActionAdd(ctx context.Context, req *longStoreCs.Ad
 
 // 更新应用（超管）
 func (c *LongStoreController) ActionUpdate(ctx context.Context, req *longStoreCs.UpdateAppRequest) error {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil
 	}
@@ -62,7 +62,7 @@ func (c *LongStoreController) ActionUpdate(ctx context.Context, req *longStoreCs
 
 // 删除应用（超管）
 func (c *LongStoreController) ActionDelete(ctx context.Context, req *longStoreCs.DeleteAppRequest) error {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil
 	}
@@ -72,7 +72,7 @@ func (c *LongStoreController) ActionDelete(ctx context.Context, req *longStoreCs
 
 // 获取已安装应用（桌面+Dock）
 func (c *LongStoreController) ActionInstalled(ctx context.Context, req *longStoreCs.AppListRequest) (*longStoreCs.DesktopAppsResponse, error) {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil, nil
 	}
@@ -81,7 +81,7 @@ func (c *LongStoreController) ActionInstalled(ctx context.Context, req *longStor
 
 // 获取静态项目路径列表
 func (c *LongStoreController) ActionStaticPaths(ctx context.Context, req *longStoreCs.StaticPathsRequest) (*longStoreCs.StaticPathsResponse, error) {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil, nil
 	}

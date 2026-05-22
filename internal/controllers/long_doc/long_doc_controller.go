@@ -4,7 +4,7 @@ import (
 	"context"
 
 	longDocBiz "github.com/armylong/armylong-go/internal/business/long_doc"
-	"github.com/armylong/armylong-go/internal/middlewares"
+	"github.com/armylong/armylong-go/internal/common/ctxhelper"
 	longDocCs "github.com/armylong/armylong-go/internal/cs/long_doc"
 )
 
@@ -13,7 +13,7 @@ type LongDocController struct{}
 
 // 获取文档树
 func (c *LongDocController) ActionList(ctx context.Context, req *longDocCs.DocListRequest) (*longDocCs.DocListResponse, error) {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil, nil
 	}
@@ -22,7 +22,7 @@ func (c *LongDocController) ActionList(ctx context.Context, req *longDocCs.DocLi
 
 // 创建文档
 func (c *LongDocController) ActionCreate(ctx context.Context, req *longDocCs.CreateDocRequest) (*longDocCs.CreateDocResponse, error) {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil, nil
 	}
@@ -31,7 +31,7 @@ func (c *LongDocController) ActionCreate(ctx context.Context, req *longDocCs.Cre
 
 // 删除文档
 func (c *LongDocController) ActionDelete(ctx context.Context, req *longDocCs.DeleteDocRequest) error {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil
 	}
@@ -40,7 +40,7 @@ func (c *LongDocController) ActionDelete(ctx context.Context, req *longDocCs.Del
 
 // 获取文档详情
 func (c *LongDocController) ActionGet(ctx context.Context, req *longDocCs.GetDocRequest) (*longDocCs.GetDocResponse, error) {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil, nil
 	}
@@ -49,7 +49,7 @@ func (c *LongDocController) ActionGet(ctx context.Context, req *longDocCs.GetDoc
 
 // 保存文档内容
 func (c *LongDocController) ActionSave(ctx context.Context, req *longDocCs.SaveDocRequest) error {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil
 	}
@@ -58,7 +58,7 @@ func (c *LongDocController) ActionSave(ctx context.Context, req *longDocCs.SaveD
 
 // 重命名文档
 func (c *LongDocController) ActionRename(ctx context.Context, req *longDocCs.RenameDocRequest) error {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil
 	}
@@ -67,7 +67,7 @@ func (c *LongDocController) ActionRename(ctx context.Context, req *longDocCs.Ren
 
 // 移动文档（拖拽排序）
 func (c *LongDocController) ActionMove(ctx context.Context, req *longDocCs.MoveDocRequest) error {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
 		return nil
 	}

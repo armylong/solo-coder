@@ -1,6 +1,10 @@
 package user
 
-import "time"
+import (
+	"time"
+
+	"github.com/armylong/armylong-go/internal/common/errcode"
+)
 
 // Demo消息
 type DemoMessage struct {
@@ -9,6 +13,10 @@ type DemoMessage struct {
 
 // 获取用户信息-请求
 type GetUserInfoRequest struct{}
+
+func (r *GetUserInfoRequest) Validate() error {
+	return nil
+}
 
 // 获取用户信息-响应
 type GetUserInfoResponse struct {
@@ -27,6 +35,13 @@ type UpdateUserInfoRequest struct {
 	Name  string `json:"name" form:"name"`   // 用户名
 	Email string `json:"email" form:"email"` // 邮箱
 	Phone string `json:"phone" form:"phone"` // 手机号
+}
+
+func (r *UpdateUserInfoRequest) Validate() error {
+	if r.Name == "" && r.Email == "" && r.Phone == "" {
+		return errcode.InvalidParam("至少需要更新一个字段")
+	}
+	return nil
 }
 
 // 更新用户信息-响应

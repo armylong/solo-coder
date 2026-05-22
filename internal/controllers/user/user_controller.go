@@ -2,11 +2,12 @@ package user
 
 import (
 	"context"
-	"errors"
 
 	userBiz "github.com/armylong/armylong-go/internal/business/user"
-	"github.com/armylong/armylong-go/internal/middlewares"
+	"github.com/armylong/armylong-go/internal/common/ctxhelper"
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	userCs "github.com/armylong/armylong-go/internal/cs/user"
+	"github.com/armylong/armylong-go/internal/middlewares"
 	"github.com/armylong/armylong-go/internal/model/user"
 	"github.com/gin-gonic/gin"
 )
@@ -40,14 +41,17 @@ type UserController struct{}
 
 // 获取当前用户信息
 func (c *UserController) ActionGetUserInfo(ctx context.Context, req *userCs.GetUserInfoRequest) (*userCs.GetUserInfoResponse, error) {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	if err := req.Validate(); err != nil {
+		return nil, err
+	}
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
-		return nil, errors.New("请先登录")
+		return nil, errcode.Unauthorized("请先登录")
 	}
 
 	u, err := user.TbUserModel.GetByUid(uid)
 	if err != nil || u == nil {
-		return nil, errors.New("用户不存在")
+		return nil, errcode.NotFound("用户不存在")
 	}
 
 	u.ClearPassword()
@@ -66,14 +70,17 @@ func (c *UserController) ActionGetUserInfo(ctx context.Context, req *userCs.GetU
 
 // 更新当前用户信息
 func (c *UserController) ActionUpdateUserInfo(ctx context.Context, req *userCs.UpdateUserInfoRequest) (*userCs.UpdateUserInfoResponse, error) {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	if err := req.Validate(); err != nil {
+		return nil, err
+	}
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
-		return nil, errors.New("请先登录")
+		return nil, errcode.Unauthorized("请先登录")
 	}
 
 	u, err := user.TbUserModel.GetByUid(uid)
 	if err != nil || u == nil {
-		return nil, errors.New("用户不存在")
+		return nil, errcode.NotFound("用户不存在")
 	}
 
 	if req.Name != "" {
@@ -88,7 +95,7 @@ func (c *UserController) ActionUpdateUserInfo(ctx context.Context, req *userCs.U
 
 	err = user.TbUserModel.Update(u)
 	if err != nil {
-		return nil, errors.New("更新失败: " + err.Error())
+		return nil, errcode.Internal("更新失败", err)
 	}
 
 	u.ClearPassword()
@@ -105,9 +112,9 @@ func (c *UserController) ActionUpdateUserInfo(ctx context.Context, req *userCs.U
 
 // 修改密码
 func (c *UserController) ActionChangePassword(ctx context.Context, req *userBiz.ChangePasswordRequest) error {
-	uid := middlewares.GetLoginUIDFromContext(ctx)
+	uid := ctxhelper.GetUID(ctx)
 	if uid == 0 {
-		return errors.New("请先登录")
+		return errcode.Unauthorized("请先登录")
 	}
 
 	return userBiz.ChangePassword(uid, req)
