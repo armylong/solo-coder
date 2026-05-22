@@ -29,6 +29,10 @@ func Kickoff(uid int64, deviceType string) error {
 		}
 		tokens = filtered
 
+		if len(tokens) == 0 {
+			return nil
+		}
+
 		user.TbUserTokenModel.DeleteByUidAndDeviceType(uid, deviceType)
 	} else {
 		tokens, err = user.TbUserTokenModel.ListByUid(uid)

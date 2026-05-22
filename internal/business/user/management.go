@@ -163,6 +163,9 @@ func (b *userBusiness) UpdatePassword(ctx context.Context, req *UpdatePasswordRe
 	if req.NewPassword == "" {
 		return errors.New("新密码不能为空")
 	}
+	if len(req.NewPassword) < 6 {
+		return errors.New("新密码长度至少为6位")
+	}
 
 	u, err := user.TbUserModel.GetByUid(req.Uid)
 	if err != nil || u == nil {
@@ -193,8 +196,8 @@ func (b *userBusiness) UpdateAdmin(ctx context.Context, req *UpdateAdminRequest)
 		return err
 	}
 
-	_, err := user.TbUserModel.GetByUid(req.Uid)
-	if err != nil || err != nil {
+	u, err := user.TbUserModel.GetByUid(req.Uid)
+	if err != nil || u == nil {
 		return errors.New("用户不存在")
 	}
 

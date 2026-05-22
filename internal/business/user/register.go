@@ -12,8 +12,17 @@ import (
 
 // 注册
 func Register(req *RegisterRequest) (*LoginResponse, error) {
-	if req.Account == "" || req.Password == "" {
-		return nil, errors.New("账号和密码不能为空")
+	if req.Account == "" {
+		return nil, errors.New("账号不能为空")
+	}
+	if req.Password == "" {
+		return nil, errors.New("密码不能为空")
+	}
+	if len(req.Password) < 6 {
+		return nil, errors.New("密码长度至少为6位")
+	}
+	if req.Name == "" {
+		return nil, errors.New("用户名不能为空")
 	}
 
 	existingUser, _ := user.TbUserModel.GetByAccount(req.Account)

@@ -47,6 +47,22 @@ func ChangePassword(uid int64, req *ChangePasswordRequest) error {
 		return errors.New("更新密码失败")
 	}
 
+	// 重新从数据库读取最新用户信息
+	updatedUser, err := user.TbUserModel.GetByUid(u.Uid)
+	if err != nil || updatedUser == nil {
+		return errors.New("获取用户信息失败")
+	}
+
+	// 刷新缓存中的用户信息
+	tokens, _ := user.TbUserTokenModel.ListByUid(u.Uid)
+	permission := user.TbAdminUserModel.GetUserPermission(u.Uid)
+	for _, t := range tokens {
+		middlewares.SetCache(t.Token, &middlewares.LoginUserInfo{
+			TbUser:         updatedUser,
+			UserPermission: permission,
+		})
+	}
+
 	// 改完密码踢所有设备下线
 	user.TbUserTokenModel.DeleteByUid(u.Uid)
 	middlewares.ClearCacheByUID(u.Uid)
