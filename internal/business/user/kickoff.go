@@ -1,8 +1,7 @@
 package user
 
 import (
-	"errors"
-
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	"github.com/armylong/armylong-go/internal/middlewares"
 	"github.com/armylong/armylong-go/internal/model/user"
 )
@@ -10,7 +9,7 @@ import (
 // 踢下线（deviceType为空则踢所有设备）
 func Kickoff(uid int64, deviceType string) error {
 	if uid == 0 {
-		return errors.New("缺少用户ID")
+		return errcode.InvalidParam("缺少用户ID")
 	}
 
 	var tokens []*user.TbUserToken
@@ -19,7 +18,7 @@ func Kickoff(uid int64, deviceType string) error {
 	if deviceType != "" {
 		tokens, err = user.TbUserTokenModel.ListByUid(uid)
 		if err != nil {
-			return errors.New("查询Token失败")
+			return errcode.Internal("查询Token失败", err)
 		}
 		var filtered []*user.TbUserToken
 		for _, t := range tokens {
@@ -33,7 +32,7 @@ func Kickoff(uid int64, deviceType string) error {
 	} else {
 		tokens, err = user.TbUserTokenModel.ListByUid(uid)
 		if err != nil {
-			return errors.New("查询Token失败")
+			return errcode.Internal("查询Token失败", err)
 		}
 
 		user.TbUserTokenModel.DeleteByUid(uid)

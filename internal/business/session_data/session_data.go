@@ -2,9 +2,9 @@ package session_data
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	ppzModel "github.com/armylong/armylong-go/internal/model/ppz"
 	userModel "github.com/armylong/armylong-go/internal/model/user"
 )
@@ -25,7 +25,7 @@ var dataFetchers = map[string]DataFetcher{
 // 按key列表并发拉取会话数据
 func (b *sessionDataBusiness) GetSessionData(ctx context.Context, uid int64, keys []string) (map[string]interface{}, error) {
 	if uid == 0 {
-		return nil, fmt.Errorf("请先登录")
+		return nil, errcode.Unauthorized("请先登录")
 	}
 
 	result := make(map[string]interface{}, len(keys))
@@ -59,7 +59,7 @@ func (b *sessionDataBusiness) GetSessionData(ctx context.Context, uid int64, key
 func fetchUserData(ctx context.Context, uid int64) (interface{}, error) {
 	u, err := userModel.TbUserModel.GetByUid(uid)
 	if err != nil || u == nil {
-		return nil, fmt.Errorf("用户不存在")
+		return nil, errcode.NotFound("用户不存在")
 	}
 	u.ClearPassword()
 	return u, nil
@@ -69,7 +69,7 @@ func fetchUserData(ctx context.Context, uid int64) (interface{}, error) {
 func fetchPpzUserData(ctx context.Context, uid int64) (interface{}, error) {
 	ppzUser, err := ppzModel.TbPpzUserModel.GetOrCreateByUid(uid)
 	if err != nil {
-		return nil, fmt.Errorf("获取拼拼坐用户信息失败: %w", err)
+		return nil, errcode.Internal("获取拼拼坐用户信息失败", err)
 	}
 	return ppzUser, nil
 }

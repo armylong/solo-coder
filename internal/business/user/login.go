@@ -1,9 +1,9 @@
 package user
 
 import (
-	"errors"
 	"time"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	"github.com/armylong/armylong-go/internal/middlewares"
 	"github.com/armylong/armylong-go/internal/model/user"
 	"golang.org/x/crypto/bcrypt"
@@ -12,7 +12,7 @@ import (
 // 登录
 func Login(req *LoginRequest) (*LoginResponse, error) {
 	if req.Account == "" || req.Password == "" {
-		return nil, errors.New("账号和密码不能为空")
+		return nil, errcode.InvalidParam("账号和密码不能为空")
 	}
 
 	deviceType := req.DeviceType
@@ -22,22 +22,22 @@ func Login(req *LoginRequest) (*LoginResponse, error) {
 
 	u, err := user.TbUserModel.GetByAccount(req.Account)
 	if err != nil || u == nil {
-		return nil, errors.New("账号不存在")
+		return nil, errcode.NotFound("账号不存在")
 	}
 
 	if u.Status != 1 {
-		return nil, errors.New("账号已被禁用")
+		return nil, errcode.PermissionDenied("账号已被禁用")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(req.Password))
 	if err != nil {
-		return nil, errors.New("密码错误")
+		return nil, errcode.InvalidParam("密码错误")
 	}
 
 	permission := user.TbAdminUserModel.GetUserPermission(u.Uid)
 	token, expireAt, err := middlewares.GenerateToken(u.Uid, u.Name, deviceType, permission, 7*24*time.Hour)
 	if err != nil {
-		return nil, errors.New("生成Token失败")
+		return nil, errcode.Internal("生成Token失败", err)
 	}
 
 	// 同设备踢掉旧Token

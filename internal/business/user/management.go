@@ -2,9 +2,9 @@ package user
 
 import (
 	"context"
-	"errors"
 
-	"github.com/armylong/armylong-go/internal/middlewares"
+	"github.com/armylong/armylong-go/internal/common/ctxhelper"
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	"github.com/armylong/armylong-go/internal/model/user"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -15,18 +15,18 @@ var UserBusiness = &userBusiness{}
 
 // 检查操作权限（只能操作比自己权限低的用户）
 func checkPermission(ctx context.Context, targetUid int64) error {
-	loginUser := middlewares.GetLoginUserFromContext(ctx)
+	loginUser := ctxhelper.GetUser(ctx)
 	if loginUser == nil {
-		return errors.New("请先登录")
+		return errcode.Unauthorized("请先登录")
 	}
 
 	if loginUser.UserPermission < user.UserPermissionAdmin {
-		return errors.New("权限不足")
+		return errcode.PermissionDenied("权限不足")
 	}
 
 	targetPermission := user.TbAdminUserModel.GetUserPermission(targetUid)
 	if targetPermission >= loginUser.UserPermission {
-		return errors.New("不能操作大于等于自己权限的用户")
+		return errcode.PermissionDenied("不能操作大于等于自己权限的用户")
 	}
 
 	return nil
@@ -36,12 +36,12 @@ func checkPermission(ctx context.Context, targetUid int64) error {
 func (b *userBusiness) Stats(ctx context.Context, req *StatsRequest) (*StatsResponse, error) {
 	totalUsers, err := user.TbUserModel.Count()
 	if err != nil {
-		return nil, errors.New("获取用户总数失败")
+		return nil, errcode.Internal("获取用户总数失败", err)
 	}
 
 	adminUsers, err := user.TbAdminUserModel.CountAdmins()
 	if err != nil {
-		return nil, errors.New("获取管理员数量失败")
+		return nil, errcode.Internal("获取管理员数量失败", err)
 	}
 
 	return &StatsResponse{
@@ -63,12 +63,12 @@ func (b *userBusiness) UserList(ctx context.Context, req *UserListRequest) (*Use
 
 	users, err := user.TbUserModel.List(req.PageSize, offset)
 	if err != nil {
-		return nil, errors.New("获取用户列表失败")
+		return nil, errcode.Internal("获取用户列表失败", err)
 	}
 
 	total, err := user.TbUserModel.Count()
 	if err != nil {
-		return nil, errors.New("获取用户总数失败")
+		return nil, errcode.Internal("获取用户总数失败", err)
 	}
 
 	adminUids, err := user.TbAdminUserModel.ListAll()
@@ -106,7 +106,7 @@ func (b *userBusiness) UserList(ctx context.Context, req *UserListRequest) (*Use
 // 更新用户状态（禁用/启用）
 func (b *userBusiness) UpdateStatus(ctx context.Context, req *UpdateStatusRequest) error {
 	if req.Uid == 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.InvalidParam("用户ID不能为空")
 	}
 
 	if err := checkPermission(ctx, req.Uid); err != nil {
@@ -115,13 +115,13 @@ func (b *userBusiness) UpdateStatus(ctx context.Context, req *UpdateStatusReques
 
 	u, err := user.TbUserModel.GetByUid(req.Uid)
 	if err != nil || u == nil {
-		return errors.New("用户不存在")
+		return errcode.NotFound("用户不存在")
 	}
 
 	u.Status = req.Status
 	err = user.TbUserModel.Update(u)
 	if err != nil {
-		return errors.New("更新状态失败: " + err.Error())
+		return errcode.Internal("更新状态失败", err)
 	}
 
 	// 禁用时踢下线
@@ -135,7 +135,7 @@ func (b *userBusiness) UpdateStatus(ctx context.Context, req *UpdateStatusReques
 // 踢下线（管理后台用）
 func (b *userBusiness) KickoffUser(ctx context.Context, req *KickoffRequest) error {
 	if req.Uid == 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.InvalidParam("用户ID不能为空")
 	}
 
 	if err := checkPermission(ctx, req.Uid); err != nil {
@@ -144,7 +144,7 @@ func (b *userBusiness) KickoffUser(ctx context.Context, req *KickoffRequest) err
 
 	err := Kickoff(req.Uid, req.DeviceType)
 	if err != nil {
-		return errors.New("踢下线失败: " + err.Error())
+		return errcode.Internal("踢下线失败", err)
 	}
 
 	return nil
@@ -153,7 +153,7 @@ func (b *userBusiness) KickoffUser(ctx context.Context, req *KickoffRequest) err
 // 修改密码（管理后台用）
 func (b *userBusiness) UpdatePassword(ctx context.Context, req *UpdatePasswordRequest) error {
 	if req.Uid == 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.InvalidParam("用户ID不能为空")
 	}
 
 	if err := checkPermission(ctx, req.Uid); err != nil {
@@ -161,23 +161,23 @@ func (b *userBusiness) UpdatePassword(ctx context.Context, req *UpdatePasswordRe
 	}
 
 	if req.NewPassword == "" {
-		return errors.New("新密码不能为空")
+		return errcode.InvalidParam("新密码不能为空")
 	}
 
 	u, err := user.TbUserModel.GetByUid(req.Uid)
 	if err != nil || u == nil {
-		return errors.New("用户不存在")
+		return errcode.NotFound("用户不存在")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
-		return errors.New("密码加密失败")
+		return errcode.Internal("密码加密失败", err)
 	}
 
 	u.Password = string(hashedPassword)
 	err = user.TbUserModel.Update(u)
 	if err != nil {
-		return errors.New("更新密码失败: " + err.Error())
+		return errcode.Internal("更新密码失败", err)
 	}
 
 	return nil
@@ -186,7 +186,7 @@ func (b *userBusiness) UpdatePassword(ctx context.Context, req *UpdatePasswordRe
 // 设置/取消管理员
 func (b *userBusiness) UpdateAdmin(ctx context.Context, req *UpdateAdminRequest) error {
 	if req.Uid == 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.InvalidParam("用户ID不能为空")
 	}
 
 	if err := checkPermission(ctx, req.Uid); err != nil {
@@ -194,13 +194,13 @@ func (b *userBusiness) UpdateAdmin(ctx context.Context, req *UpdateAdminRequest)
 	}
 
 	_, err := user.TbUserModel.GetByUid(req.Uid)
-	if err != nil || err != nil {
-		return errors.New("用户不存在")
+	if err != nil {
+		return errcode.NotFound("用户不存在")
 	}
 
 	err = user.TbAdminUserModel.SetAdmin(req.Uid, req.IsAdmin)
 	if err != nil {
-		return errors.New("更新管理员状态失败: " + err.Error())
+		return errcode.Internal("更新管理员状态失败", err)
 	}
 
 	return nil

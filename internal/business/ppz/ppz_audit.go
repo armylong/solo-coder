@@ -2,9 +2,8 @@ package ppz
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	ppzCs "github.com/armylong/armylong-go/internal/cs/ppz"
 	ppzModel "github.com/armylong/armylong-go/internal/model/ppz"
 )
@@ -17,10 +16,10 @@ var PpzAuditBusiness = &ppzAuditBusiness{}
 func (b *ppzAuditBusiness) checkDriverStatus(ctx context.Context, uid int64) error {
 	isDriverBanned, err := ppzModel.TbPpzUserModel.IsDriverBanned(uid)
 	if err != nil {
-		return fmt.Errorf("检查用户状态失败: %w", err)
+		return errcode.Internal("检查用户状态失败", err)
 	}
 	if isDriverBanned {
-		return errors.New("您的司机状态异常, 不能管理车辆, 如有需要请联系客服")
+		return errcode.PermissionDenied("您的司机状态异常, 不能管理车辆, 如有需要请联系客服")
 	}
 	return nil
 }
@@ -34,7 +33,7 @@ func (b *ppzAuditBusiness) createAuditLog(audit *ppzModel.TbPpzCarAudit) error {
 // 添加车辆
 func (b *ppzAuditBusiness) AddMyCar(ctx context.Context, uid int64, req *ppzCs.AddMyCarRequest) (*ppzCs.AddMyCarResponse, error) {
 	if uid == 0 {
-		return nil, errors.New("请先登录")
+		return nil, errcode.Unauthorized("请先登录")
 	}
 
 	if err := b.checkDriverStatus(ctx, uid); err != nil {
@@ -42,28 +41,28 @@ func (b *ppzAuditBusiness) AddMyCar(ctx context.Context, uid int64, req *ppzCs.A
 	}
 
 	if req.CarModel == "" {
-		return nil, errors.New("车辆型号不能为空")
+		return nil, errcode.InvalidParam("车辆型号不能为空")
 	}
 	if req.CarLicensePhoto == "" {
-		return nil, errors.New("行驶证照片不能为空")
+		return nil, errcode.InvalidParam("行驶证照片不能为空")
 	}
 	if req.DriverLicensePhoto == "" {
-		return nil, errors.New("驾驶证照片不能为空")
+		return nil, errcode.InvalidParam("驾驶证照片不能为空")
 	}
 	if req.LicensePlate == "" {
-		return nil, errors.New("车牌号不能为空")
+		return nil, errcode.InvalidParam("车牌号不能为空")
 	}
 	if req.CarColor == "" {
-		return nil, errors.New("车辆颜色不能为空")
+		return nil, errcode.InvalidParam("车辆颜色不能为空")
 	}
 	if req.Seats <= 0 {
-		return nil, errors.New("乘客座位数必须大于0")
+		return nil, errcode.InvalidParam("乘客座位数必须大于0")
 	}
 	if req.CarPhoto == "" {
-		return nil, errors.New("车辆照片不能为空")
+		return nil, errcode.InvalidParam("车辆照片不能为空")
 	}
 	if req.Description == "" {
-		return nil, errors.New("车辆简介不能为空")
+		return nil, errcode.InvalidParam("车辆简介不能为空")
 	}
 
 	audit := &ppzModel.TbPpzCarAudit{
@@ -84,7 +83,7 @@ func (b *ppzAuditBusiness) AddMyCar(ctx context.Context, uid int64, req *ppzCs.A
 
 	auditId, err := ppzModel.TbPpzCarAuditModel.Create(audit)
 	if err != nil {
-		return nil, fmt.Errorf("添加车辆审核记录失败: %w", err)
+		return nil, errcode.Internal("添加车辆审核记录失败", err)
 	}
 
 	audit.AuditId = auditId
@@ -101,7 +100,7 @@ func (b *ppzAuditBusiness) AddMyCar(ctx context.Context, uid int64, req *ppzCs.A
 // 获取我的车辆列表
 func (b *ppzAuditBusiness) GetMyCars(ctx context.Context, uid int64, req *ppzCs.GetMyCarsRequest) (*ppzCs.GetMyCarsResponse, error) {
 	if uid == 0 {
-		return nil, errors.New("请先登录")
+		return nil, errcode.Unauthorized("请先登录")
 	}
 
 	if err := b.checkDriverStatus(ctx, uid); err != nil {
@@ -119,7 +118,7 @@ func (b *ppzAuditBusiness) GetMyCars(ctx context.Context, uid int64, req *ppzCs.
 
 	audits, err := ppzModel.TbPpzCarAuditModel.ListByUid(uid, auditStatus)
 	if err != nil {
-		return nil, fmt.Errorf("获取车辆列表失败: %w", err)
+		return nil, errcode.Internal("获取车辆列表失败", err)
 	}
 
 	return &ppzCs.GetMyCarsResponse{
@@ -130,7 +129,7 @@ func (b *ppzAuditBusiness) GetMyCars(ctx context.Context, uid int64, req *ppzCs.
 // 编辑车辆
 func (b *ppzAuditBusiness) EditMyCar(ctx context.Context, uid int64, req *ppzCs.EditMyCarRequest) (*ppzCs.EditMyCarResponse, error) {
 	if uid == 0 {
-		return nil, errors.New("请先登录")
+		return nil, errcode.Unauthorized("请先登录")
 	}
 
 	if err := b.checkDriverStatus(ctx, uid); err != nil {
@@ -141,43 +140,43 @@ func (b *ppzAuditBusiness) EditMyCar(ctx context.Context, uid int64, req *ppzCs.
 	if auditId == 0 && req.CarId > 0 {
 		audit, err := ppzModel.TbPpzCarAuditModel.GetByUidAndCarId(uid, req.CarId)
 		if err != nil || audit == nil {
-			return nil, errors.New("车辆不存在或无权限编辑")
+			return nil, errcode.NotFound("车辆不存在或无权限编辑")
 		}
 		auditId = audit.AuditId
 	}
 
 	if auditId <= 0 {
-		return nil, errors.New("请提供审核ID或车辆ID")
+		return nil, errcode.InvalidParam("请提供审核ID或车辆ID")
 	}
 
 	if req.CarModel == "" {
-		return nil, errors.New("车辆型号不能为空")
+		return nil, errcode.InvalidParam("车辆型号不能为空")
 	}
 	if req.CarLicensePhoto == "" {
-		return nil, errors.New("行驶证照片不能为空")
+		return nil, errcode.InvalidParam("行驶证照片不能为空")
 	}
 	if req.DriverLicensePhoto == "" {
-		return nil, errors.New("驾驶证照片不能为空")
+		return nil, errcode.InvalidParam("驾驶证照片不能为空")
 	}
 	if req.LicensePlate == "" {
-		return nil, errors.New("车牌号不能为空")
+		return nil, errcode.InvalidParam("车牌号不能为空")
 	}
 	if req.CarColor == "" {
-		return nil, errors.New("车辆颜色不能为空")
+		return nil, errcode.InvalidParam("车辆颜色不能为空")
 	}
 	if req.Seats <= 0 {
-		return nil, errors.New("乘客座位数必须大于0")
+		return nil, errcode.InvalidParam("乘客座位数必须大于0")
 	}
 	if req.CarPhoto == "" {
-		return nil, errors.New("车辆照片不能为空")
+		return nil, errcode.InvalidParam("车辆照片不能为空")
 	}
 	if req.Description == "" {
-		return nil, errors.New("车辆简介不能为空")
+		return nil, errcode.InvalidParam("车辆简介不能为空")
 	}
 
 	audit, err := ppzModel.TbPpzCarAuditModel.GetByUidAndId(uid, auditId)
 	if err != nil || audit == nil {
-		return nil, errors.New("车辆不存在或无权限编辑")
+		return nil, errcode.NotFound("车辆不存在或无权限编辑")
 	}
 
 	audit.AuditData = &ppzModel.CarAuditData{
@@ -194,7 +193,7 @@ func (b *ppzAuditBusiness) EditMyCar(ctx context.Context, uid int64, req *ppzCs.
 
 	err = ppzModel.TbPpzCarAuditModel.Update(audit)
 	if err != nil {
-		return nil, fmt.Errorf("更新车辆审核记录失败: %w", err)
+		return nil, errcode.Internal("更新车辆审核记录失败", err)
 	}
 
 	_ = b.createAuditLog(audit)
@@ -208,7 +207,7 @@ func (b *ppzAuditBusiness) EditMyCar(ctx context.Context, uid int64, req *ppzCs.
 // 删除车辆
 func (b *ppzAuditBusiness) DeleteMyCar(ctx context.Context, uid int64, req *ppzCs.DeleteMyCarRequest) (*ppzCs.DeleteMyCarResponse, error) {
 	if uid == 0 {
-		return nil, errors.New("请先登录")
+		return nil, errcode.Unauthorized("请先登录")
 	}
 
 	if err := b.checkDriverStatus(ctx, uid); err != nil {
@@ -219,24 +218,24 @@ func (b *ppzAuditBusiness) DeleteMyCar(ctx context.Context, uid int64, req *ppzC
 	if auditId == 0 && req.CarId > 0 {
 		audit, err := ppzModel.TbPpzCarAuditModel.GetByUidAndCarId(uid, req.CarId)
 		if err != nil || audit == nil {
-			return nil, errors.New("车辆不存在或无权限删除")
+			return nil, errcode.NotFound("车辆不存在或无权限删除")
 		}
 		auditId = audit.AuditId
 	}
 
 	if auditId <= 0 {
-		return nil, errors.New("请提供审核ID或车辆ID")
+		return nil, errcode.InvalidParam("请提供审核ID或车辆ID")
 	}
 
 	audit, err := ppzModel.TbPpzCarAuditModel.GetByUidAndId(uid, auditId)
 	if err != nil || audit == nil {
-		return nil, errors.New("车辆不存在或无权限删除")
+		return nil, errcode.NotFound("车辆不存在或无权限删除")
 	}
 
 	audit.AuditStatus = ppzModel.AuditStatusDeleted
 	err = ppzModel.TbPpzCarAuditModel.Update(audit)
 	if err != nil {
-		return nil, fmt.Errorf("删除车辆审核记录失败: %w", err)
+		return nil, errcode.Internal("删除车辆审核记录失败", err)
 	}
 
 	_ = b.createAuditLog(audit)
@@ -248,7 +247,7 @@ func (b *ppzAuditBusiness) DeleteMyCar(ctx context.Context, uid int64, req *ppzC
 func (b *ppzAuditBusiness) ApproveCarAudit(ctx context.Context, auditId int64, auditReason string) error {
 	audit, err := ppzModel.TbPpzCarAuditModel.GetById(auditId)
 	if err != nil || audit == nil {
-		return errors.New("审核记录不存在")
+		return errcode.NotFound("审核记录不存在")
 	}
 
 	var carId int64
@@ -267,12 +266,12 @@ func (b *ppzAuditBusiness) ApproveCarAudit(ctx context.Context, auditId int64, a
 		}
 		carId, err = ppzModel.TbPpzCarsModel.Create(car)
 		if err != nil {
-			return fmt.Errorf("创建车辆记录失败: %w", err)
+			return errcode.Internal("创建车辆记录失败", err)
 		}
 	} else {
 		car, err := ppzModel.TbPpzCarsModel.GetById(audit.CarId)
 		if err != nil {
-			return fmt.Errorf("获取车辆记录失败: %w", err)
+			return errcode.Internal("获取车辆记录失败", err)
 		}
 		car.CarModel = audit.AuditData.CarModel
 		car.CarLicensePhoto = audit.AuditData.CarLicensePhoto
@@ -285,7 +284,7 @@ func (b *ppzAuditBusiness) ApproveCarAudit(ctx context.Context, auditId int64, a
 		car.Status = ppzModel.CarStatusNormal
 		err = ppzModel.TbPpzCarsModel.Update(car)
 		if err != nil {
-			return fmt.Errorf("更新车辆记录失败: %w", err)
+			return errcode.Internal("更新车辆记录失败", err)
 		}
 		carId = audit.CarId
 	}
@@ -295,7 +294,7 @@ func (b *ppzAuditBusiness) ApproveCarAudit(ctx context.Context, auditId int64, a
 	audit.AuditReason = auditReason
 	err = ppzModel.TbPpzCarAuditModel.Update(audit)
 	if err != nil {
-		return fmt.Errorf("更新审核记录状态失败: %w", err)
+		return errcode.Internal("更新审核记录状态失败", err)
 	}
 
 	_ = b.createAuditLog(audit)
@@ -309,14 +308,14 @@ func (b *ppzAuditBusiness) ApproveCarAudit(ctx context.Context, auditId int64, a
 func (b *ppzAuditBusiness) RejectCarAudit(ctx context.Context, auditId int64, auditReason string) error {
 	audit, err := ppzModel.TbPpzCarAuditModel.GetById(auditId)
 	if err != nil || audit == nil {
-		return errors.New("审核记录不存在")
+		return errcode.NotFound("审核记录不存在")
 	}
 
 	audit.AuditStatus = ppzModel.AuditStatusRejected
 	audit.AuditReason = auditReason
 	err = ppzModel.TbPpzCarAuditModel.Update(audit)
 	if err != nil {
-		return fmt.Errorf("更新审核记录状态失败: %w", err)
+		return errcode.Internal("更新审核记录状态失败", err)
 	}
 
 	_ = b.createAuditLog(audit)
@@ -327,12 +326,12 @@ func (b *ppzAuditBusiness) RejectCarAudit(ctx context.Context, auditId int64, au
 // 检查是否认证司机
 func (b *ppzAuditBusiness) CheckDriver(ctx context.Context, uid int64) (*ppzCs.CheckDriverResponse, error) {
 	if uid == 0 {
-		return nil, errors.New("请先登录")
+		return nil, errcode.Unauthorized("请先登录")
 	}
 
 	isCertified, err := ppzModel.TbPpzCarAuditModel.HasApprovedAudit(uid)
 	if err != nil {
-		return nil, fmt.Errorf("检查失败: %w", err)
+		return nil, errcode.Internal("检查失败", err)
 	}
 
 	isDriverBanned, _ := ppzModel.TbPpzUserModel.IsDriverBanned(uid)

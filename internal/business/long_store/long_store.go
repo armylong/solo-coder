@@ -1,9 +1,9 @@
 package long_store
 
 import (
-	"errors"
 	"os"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	longStoreCs "github.com/armylong/armylong-go/internal/cs/long_store"
 	desktopModel "github.com/armylong/armylong-go/internal/model/desktop"
 	userModel "github.com/armylong/armylong-go/internal/model/user"
@@ -34,14 +34,14 @@ func isSuperAdmin(uid int64) bool {
 // 获取应用商店列表
 func (b *longStoreBusiness) GetAppList(uid int64) (*longStoreCs.AppListResponse, error) {
 	if uid <= 0 {
-		return nil, errors.New("用户ID不能为空")
+		return nil, errcode.Unauthorized("用户ID不能为空")
 	}
 
 	userPermission := userModel.TbAdminUserModel.GetUserPermission(uid)
 
 	apps, err := desktopModel.TbAppModel.ListForLongStore(userPermission)
 	if err != nil {
-		return nil, errors.New("获取应用列表失败")
+		return nil, errcode.Internal("获取应用列表失败", err)
 	}
 
 	userApps, err := desktopModel.TbUserAppModel.ListByUid(uid)
@@ -86,24 +86,24 @@ func (b *longStoreBusiness) GetAppList(uid int64) (*longStoreCs.AppListResponse,
 // 安装应用到桌面
 func (b *longStoreBusiness) InstallApp(req *longStoreCs.InstallAppRequest) error {
 	if req.Uid <= 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.Unauthorized("用户ID不能为空")
 	}
 	if req.AppId <= 0 {
-		return errors.New("应用ID不能为空")
+		return errcode.InvalidParam("应用ID不能为空")
 	}
 
 	app, err := desktopModel.TbAppModel.GetByAppId(req.AppId)
 	if err != nil || app == nil {
-		return errors.New("应用不存在")
+		return errcode.NotFound("应用不存在")
 	}
 
 	userPermission := userModel.TbAdminUserModel.GetUserPermission(req.Uid)
 	if !hasPermission(userPermission, app.Permission) {
-		return errors.New("没有权限安装该应用")
+		return errcode.PermissionDenied("没有权限安装该应用")
 	}
 
 	if desktopModel.TbAppModel.IsLongStoreApp(app.AppName, app.Url) {
-		return errors.New("不能安装应用商店本身")
+		return errcode.PermissionDenied("不能安装应用商店本身")
 	}
 
 	existing, err := desktopModel.TbUserAppModel.GetByUidAndAppId(req.Uid, req.AppId)
@@ -126,7 +126,7 @@ func (b *longStoreBusiness) InstallApp(req *longStoreCs.InstallAppRequest) error
 		desktopModel.UserAppStatusInstalled,
 	)
 	if err != nil {
-		return errors.New("安装应用失败")
+		return errcode.Internal("安装应用失败", err)
 	}
 
 	return nil
@@ -135,19 +135,19 @@ func (b *longStoreBusiness) InstallApp(req *longStoreCs.InstallAppRequest) error
 // 从桌面卸载应用
 func (b *longStoreBusiness) UninstallApp(req *longStoreCs.UninstallAppRequest) error {
 	if req.Uid <= 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.Unauthorized("用户ID不能为空")
 	}
 	if req.AppId <= 0 {
-		return errors.New("应用ID不能为空")
+		return errcode.InvalidParam("应用ID不能为空")
 	}
 
 	app, err := desktopModel.TbAppModel.GetByAppId(req.AppId)
 	if err != nil || app == nil {
-		return errors.New("应用不存在")
+		return errcode.NotFound("应用不存在")
 	}
 
 	if desktopModel.TbAppModel.IsLongStoreApp(app.AppName, app.Url) {
-		return errors.New("不能卸载应用商店")
+		return errcode.PermissionDenied("不能卸载应用商店")
 	}
 
 	userApp, err := desktopModel.TbUserAppModel.GetByUidAndAppId(req.Uid, req.AppId)
@@ -172,7 +172,7 @@ func (b *longStoreBusiness) UninstallApp(req *longStoreCs.UninstallAppRequest) e
 
 	err = desktopModel.TbUserAppModel.Delete(req.Uid, req.AppId)
 	if err != nil {
-		return errors.New("卸载应用失败")
+		return errcode.Internal("卸载应用失败", err)
 	}
 
 	return nil
@@ -181,26 +181,26 @@ func (b *longStoreBusiness) UninstallApp(req *longStoreCs.UninstallAppRequest) e
 // 添加新应用（超管）
 func (b *longStoreBusiness) AddApp(req *longStoreCs.AddAppRequest) error {
 	if req.Uid <= 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.Unauthorized("用户ID不能为空")
 	}
 	if req.AppName == "" {
-		return errors.New("应用名称不能为空")
+		return errcode.InvalidParam("应用名称不能为空")
 	}
 	if req.Url == "" {
-		return errors.New("应用URL不能为空")
+		return errcode.InvalidParam("应用URL不能为空")
 	}
 
 	if !isSuperAdmin(req.Uid) {
-		return errors.New("只有超级管理员可以添加应用")
+		return errcode.PermissionDenied("只有超级管理员可以添加应用")
 	}
 
 	if desktopModel.TbAppModel.IsLongStoreApp(req.AppName, req.Url) {
-		return errors.New("不能添加应用商店本身")
+		return errcode.PermissionDenied("不能添加应用商店本身")
 	}
 
 	existing, _ := desktopModel.TbAppModel.GetByAppName(req.AppName)
 	if existing != nil {
-		return errors.New("应用名称已存在")
+		return errcode.AlreadyExists("应用名称已存在")
 	}
 
 	icon := req.Icon
@@ -224,7 +224,7 @@ func (b *longStoreBusiness) AddApp(req *longStoreCs.AddAppRequest) error {
 
 	_, err := desktopModel.TbAppModel.Create(app)
 	if err != nil {
-		return errors.New("添加应用失败")
+		return errcode.Internal("添加应用失败", err)
 	}
 
 	return nil
@@ -233,29 +233,29 @@ func (b *longStoreBusiness) AddApp(req *longStoreCs.AddAppRequest) error {
 // 更新应用（超管）
 func (b *longStoreBusiness) UpdateApp(req *longStoreCs.UpdateAppRequest) error {
 	if req.Uid <= 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.Unauthorized("用户ID不能为空")
 	}
 	if req.AppId <= 0 {
-		return errors.New("应用ID不能为空")
+		return errcode.InvalidParam("应用ID不能为空")
 	}
 
 	if !isSuperAdmin(req.Uid) {
-		return errors.New("只有超级管理员可以更新应用")
+		return errcode.PermissionDenied("只有超级管理员可以更新应用")
 	}
 
 	existing, err := desktopModel.TbAppModel.GetByAppId(req.AppId)
 	if err != nil || existing == nil {
-		return errors.New("应用不存在")
+		return errcode.NotFound("应用不存在")
 	}
 
 	if desktopModel.TbAppModel.IsLongStoreApp(existing.AppName, existing.Url) {
-		return errors.New("不能修改应用商店")
+		return errcode.PermissionDenied("不能修改应用商店")
 	}
 
 	if req.AppName != "" && req.AppName != existing.AppName {
 		nameExists, _ := desktopModel.TbAppModel.GetByAppName(req.AppName)
 		if nameExists != nil {
-			return errors.New("应用名称已存在")
+			return errcode.AlreadyExists("应用名称已存在")
 		}
 		existing.AppName = req.AppName
 	}
@@ -278,7 +278,7 @@ func (b *longStoreBusiness) UpdateApp(req *longStoreCs.UpdateAppRequest) error {
 
 	err = desktopModel.TbAppModel.Update(existing)
 	if err != nil {
-		return errors.New("更新应用失败")
+		return errcode.Internal("更新应用失败", err)
 	}
 
 	return nil
@@ -287,28 +287,28 @@ func (b *longStoreBusiness) UpdateApp(req *longStoreCs.UpdateAppRequest) error {
 // 删除应用（超管）
 func (b *longStoreBusiness) DeleteApp(req *longStoreCs.DeleteAppRequest) error {
 	if req.Uid <= 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.Unauthorized("用户ID不能为空")
 	}
 	if req.AppId <= 0 {
-		return errors.New("应用ID不能为空")
+		return errcode.InvalidParam("应用ID不能为空")
 	}
 
 	if !isSuperAdmin(req.Uid) {
-		return errors.New("只有超级管理员可以删除应用")
+		return errcode.PermissionDenied("只有超级管理员可以删除应用")
 	}
 
 	app, err := desktopModel.TbAppModel.GetByAppId(req.AppId)
 	if err != nil || app == nil {
-		return errors.New("应用不存在")
+		return errcode.NotFound("应用不存在")
 	}
 
 	if desktopModel.TbAppModel.IsLongStoreApp(app.AppName, app.Url) {
-		return errors.New("不能删除应用商店")
+		return errcode.PermissionDenied("不能删除应用商店")
 	}
 
 	err = desktopModel.TbAppModel.Delete(req.AppId)
 	if err != nil {
-		return errors.New("删除应用失败")
+		return errcode.Internal("删除应用失败", err)
 	}
 
 	return nil
@@ -317,12 +317,12 @@ func (b *longStoreBusiness) DeleteApp(req *longStoreCs.DeleteAppRequest) error {
 // 初始化新用户桌面（只装应用商店）
 func (b *longStoreBusiness) InitUserDesktopApps(uid int64) error {
 	if uid <= 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.Unauthorized("用户ID不能为空")
 	}
 
 	longStoreApp, err := desktopModel.TbAppModel.GetByAppName(desktopModel.LongStoreAppName)
 	if err != nil || longStoreApp == nil {
-		return errors.New("应用商店应用不存在")
+		return errcode.NotFound("应用商店应用不存在")
 	}
 
 	ext := &desktopModel.UserAppExt{
@@ -338,7 +338,7 @@ func (b *longStoreBusiness) InitUserDesktopApps(uid int64) error {
 		desktopModel.UserAppStatusInstalled,
 	)
 	if err != nil {
-		return errors.New("初始化用户桌面失败")
+		return errcode.Internal("初始化用户桌面失败", err)
 	}
 
 	return nil
@@ -347,7 +347,7 @@ func (b *longStoreBusiness) InitUserDesktopApps(uid int64) error {
 // 获取用户已安装的桌面和Dock应用
 func (b *longStoreBusiness) GetUserInstalledApps(uid int64) (*longStoreCs.DesktopAppsResponse, error) {
 	if uid <= 0 {
-		return nil, errors.New("用户ID不能为空")
+		return nil, errcode.Unauthorized("用户ID不能为空")
 	}
 
 	userApps, err := desktopModel.TbUserAppModel.ListByUid(uid)
@@ -409,7 +409,7 @@ func (b *longStoreBusiness) GetStaticPaths() (*longStoreCs.StaticPathsResponse, 
 	yamlPath := "./static/projects.yaml"
 	data, err := os.ReadFile(yamlPath)
 	if err != nil {
-		return nil, errors.New("读取 projects.yaml 失败")
+		return nil, errcode.Internal("读取 projects.yaml 失败", err)
 	}
 
 	var projects map[string]struct {
@@ -419,7 +419,7 @@ func (b *longStoreBusiness) GetStaticPaths() (*longStoreCs.StaticPathsResponse, 
 		Desc       string `yaml:"desc"`
 	}
 	if err := yaml.Unmarshal(data, &projects); err != nil {
-		return nil, errors.New("解析 projects.yaml 失败")
+		return nil, errcode.Internal("解析 projects.yaml 失败", err)
 	}
 
 	var paths []*longStoreCs.StaticPathItem

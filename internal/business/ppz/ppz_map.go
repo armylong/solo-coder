@@ -3,9 +3,9 @@ package ppz
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"math"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	ppzCs "github.com/armylong/armylong-go/internal/cs/ppz"
 	ppzModel "github.com/armylong/armylong-go/internal/model/ppz"
 )
@@ -19,14 +19,14 @@ func (b *ppzMapBusiness) UploadAddress(ctx context.Context, uid int64, req *ppzC
 	if req.AddressId > 0 {
 		address, err := ppzModel.TbPpzMapAddressModel.GetByUidAndId(uid, req.AddressId)
 		if err != nil {
-			return nil, fmt.Errorf("地址不存在或无权限操作: %w", err)
+			return nil, errcode.NotFound("地址不存在或无权限操作")
 		}
 
 		address.Remark = req.Remark
 		address.GaodeData = req.GaodeData
 
 		if err := ppzModel.TbPpzMapAddressModel.Update(address); err != nil {
-			return nil, fmt.Errorf("更新地址失败: %w", err)
+			return nil, errcode.Internal("更新地址失败", err)
 		}
 
 		return &ppzCs.UploadAddressResponse{
@@ -43,7 +43,7 @@ func (b *ppzMapBusiness) UploadAddress(ctx context.Context, uid int64, req *ppzC
 
 	addressId, err := ppzModel.TbPpzMapAddressModel.Create(newAddress)
 	if err != nil {
-		return nil, fmt.Errorf("创建地址失败: %w", err)
+		return nil, errcode.Internal("创建地址失败", err)
 	}
 
 	return &ppzCs.UploadAddressResponse{
@@ -59,7 +59,7 @@ func (b *ppzMapBusiness) GetAddressList(ctx context.Context, uid int64, req *ppz
 
 	addresses, err := ppzModel.TbPpzMapAddressModel.ListByUid(uid)
 	if err != nil {
-		return nil, fmt.Errorf("获取地址列表失败: %w", err)
+		return nil, errcode.Internal("获取地址列表失败", err)
 	}
 
 	for _, addr := range addresses {
@@ -77,12 +77,12 @@ func (b *ppzMapBusiness) GetAddressList(ctx context.Context, uid int64, req *ppz
 // 更新地址排序
 func (b *ppzMapBusiness) UpdateAddressSort(ctx context.Context, uid int64, req *ppzCs.UpdateAddressSortRequest) (*ppzCs.UpdateAddressSortResponse, error) {
 	if req.AddressId <= 0 {
-		return nil, fmt.Errorf("地址ID不能为空")
+		return nil, errcode.InvalidParam("地址ID不能为空")
 	}
 
 	err := ppzModel.TbPpzMapAddressModel.UpdateSort(uid, req.AddressId, req.NewSort)
 	if err != nil {
-		return nil, fmt.Errorf("更新排序失败: %w", err)
+		return nil, errcode.Internal("更新排序失败", err)
 	}
 
 	return &ppzCs.UpdateAddressSortResponse{}, nil
@@ -91,12 +91,12 @@ func (b *ppzMapBusiness) UpdateAddressSort(ctx context.Context, uid int64, req *
 // 删除地址
 func (b *ppzMapBusiness) DeleteAddress(ctx context.Context, uid int64, req *ppzCs.DeleteAddressRequest) (*ppzCs.DeleteAddressResponse, error) {
 	if req.AddressId <= 0 {
-		return nil, fmt.Errorf("地址ID不能为空")
+		return nil, errcode.InvalidParam("地址ID不能为空")
 	}
 
 	err := ppzModel.TbPpzMapAddressModel.Delete(uid, req.AddressId)
 	if err != nil {
-		return nil, fmt.Errorf("删除地址失败: %w", err)
+		return nil, errcode.Internal("删除地址失败", err)
 	}
 
 	return &ppzCs.DeleteAddressResponse{}, nil
@@ -105,16 +105,16 @@ func (b *ppzMapBusiness) DeleteAddress(ctx context.Context, uid int64, req *ppzC
 // 获取地址详情
 func (b *ppzMapBusiness) GetAddressDetail(ctx context.Context, uid int64, req *ppzCs.GetAddressDetailRequest) (*ppzCs.GetAddressDetailResponse, error) {
 	if req.AddressId <= 0 {
-		return nil, fmt.Errorf("地址ID不能为空")
+		return nil, errcode.InvalidParam("地址ID不能为空")
 	}
 
 	address, err := ppzModel.TbPpzMapAddressModel.GetById(req.AddressId)
 	if err != nil {
-		return nil, fmt.Errorf("获取地址详情失败: %w", err)
+		return nil, errcode.Internal("获取地址详情失败", err)
 	}
 
 	if address == nil || address.Uid != uid || address.Status != ppzModel.AddressStatusNormal {
-		return nil, fmt.Errorf("地址不存在或无权限")
+		return nil, errcode.NotFound("地址不存在或无权限")
 	}
 
 	return &ppzCs.GetAddressDetailResponse{

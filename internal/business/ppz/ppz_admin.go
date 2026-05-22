@@ -2,11 +2,10 @@ package ppz
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"sort"
 	"time"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	ppzCs "github.com/armylong/armylong-go/internal/cs/ppz"
 	ppzModel "github.com/armylong/armylong-go/internal/model/ppz"
 	"github.com/armylong/armylong-go/internal/model/user"
@@ -61,7 +60,7 @@ func (b *ppzAdminBusiness) DriverList(ctx context.Context, req *ppzCs.DriverList
 
 	filteredUids, err := ppzModel.TbPpzCarsModel.GetDistinctUidsByStatus(req.Status)
 	if err != nil {
-		return nil, fmt.Errorf("获取司机列表失败: %w", err)
+		return nil, errcode.Internal("获取司机列表失败", err)
 	}
 
 	total := int64(len(filteredUids))
@@ -145,19 +144,19 @@ func (b *ppzAdminBusiness) DriverList(ctx context.Context, req *ppzCs.DriverList
 // 封禁司机
 func (b *ppzAdminBusiness) BanDriver(ctx context.Context, req *ppzCs.BanDriverRequest) (*ppzCs.BanDriverResponse, error) {
 	if req.Uid == 0 {
-		return nil, fmt.Errorf("用户ID不能为空")
+		return nil, errcode.InvalidParam("用户ID不能为空")
 	}
 
 	_, _ = ppzModel.TbPpzUserModel.GetOrCreateByUid(req.Uid)
 
 	err := ppzModel.TbPpzUserModel.BanDriver(req.Uid, req.BanReason)
 	if err != nil {
-		return nil, fmt.Errorf("封禁司机失败: %w", err)
+		return nil, errcode.Internal("封禁司机失败", err)
 	}
 
 	err = b.rejectAllAuditsByUid(req.Uid)
 	if err != nil {
-		return nil, fmt.Errorf("封禁成功，但车辆审核状态更新失败: %w", err)
+		return nil, errcode.Internal("封禁成功，但车辆审核状态更新失败", err)
 	}
 
 	return nil, nil
@@ -188,21 +187,21 @@ func (b *ppzAdminBusiness) rejectAllAuditsByUid(uid int64) error {
 // 解封司机
 func (b *ppzAdminBusiness) UnbanDriver(ctx context.Context, req *ppzCs.UnbanDriverRequest) (*ppzCs.UnbanDriverResponse, error) {
 	if req.Uid == 0 {
-		return nil, fmt.Errorf("用户ID不能为空")
+		return nil, errcode.InvalidParam("用户ID不能为空")
 	}
 
 	driver, err := ppzModel.TbPpzUserModel.GetByUid(req.Uid)
 	if err != nil {
-		return nil, fmt.Errorf("该司机不存在")
+		return nil, errcode.NotFound("该司机不存在")
 	}
 
 	if driver.DriverStatus != ppzModel.DriverStatusBanned {
-		return nil, fmt.Errorf("该司机未被封禁")
+		return nil, errcode.AlreadyExists("该司机未被封禁")
 	}
 
 	err = ppzModel.TbPpzUserModel.UnbanDriver(req.Uid)
 	if err != nil {
-		return nil, fmt.Errorf("解封司机失败: %w", err)
+		return nil, errcode.Internal("解封司机失败", err)
 	}
 
 	return nil, nil
@@ -221,7 +220,7 @@ func (b *ppzAdminBusiness) GetCarDetail(ctx context.Context, req *ppzCs.GetCarDe
 				if err != nil || audit == nil {
 					car, err := ppzModel.TbPpzCarsModel.GetById(req.CarId)
 					if err != nil || car == nil {
-						return nil, fmt.Errorf("车辆不存在: %w", err)
+						return nil, errcode.NotFound("车辆不存在")
 					}
 					return &ppzCs.GetCarDetailResponse{
 						Car: &ppzCs.CarAuditDetail{
@@ -245,7 +244,7 @@ func (b *ppzAdminBusiness) GetCarDetail(ctx context.Context, req *ppzCs.GetCarDe
 					}, nil
 				}
 			} else {
-				return nil, errors.New("车辆不存在或无权限查看")
+				return nil, errcode.NotFound("车辆不存在或无权限查看")
 			}
 		}
 	} else if req.CarId > 0 {
@@ -253,7 +252,7 @@ func (b *ppzAdminBusiness) GetCarDetail(ctx context.Context, req *ppzCs.GetCarDe
 		if err != nil || audit == nil {
 			car, err := ppzModel.TbPpzCarsModel.GetById(req.CarId)
 			if err != nil || car == nil {
-				return nil, fmt.Errorf("车辆不存在: %w", err)
+				return nil, errcode.NotFound("车辆不存在")
 			}
 			return &ppzCs.GetCarDetailResponse{
 				Car: &ppzCs.CarAuditDetail{
@@ -277,7 +276,7 @@ func (b *ppzAdminBusiness) GetCarDetail(ctx context.Context, req *ppzCs.GetCarDe
 			}, nil
 		}
 	} else {
-		return nil, errors.New("请提供车辆ID或审核ID")
+		return nil, errcode.InvalidParam("请提供车辆ID或审核ID")
 	}
 
 	carDetail := &ppzCs.CarAuditDetail{
@@ -341,7 +340,7 @@ func (b *ppzAdminBusiness) CarAuditList(ctx context.Context, req *ppzCs.CarAudit
 
 	allUids, err := ppzModel.TbPpzCarAuditModel.GetDistinctUidsByStatus(req.AuditStatus)
 	if err != nil {
-		return nil, fmt.Errorf("获取车辆审核列表失败: %w", err)
+		return nil, errcode.Internal("获取车辆审核列表失败", err)
 	}
 
 	filteredUids := make([]int64, 0, len(allUids))
@@ -440,12 +439,12 @@ func (b *ppzAdminBusiness) CarAuditList(ctx context.Context, req *ppzCs.CarAudit
 // 审核通过（带原因）
 func (b *ppzAdminBusiness) ApproveCarAuditWithReason(ctx context.Context, req *ppzCs.ApproveCarAuditRequest) (*ppzCs.ApproveCarAuditResponse, error) {
 	if req.AuditId == 0 {
-		return nil, errors.New("审核记录ID不能为空")
+		return nil, errcode.InvalidParam("审核记录ID不能为空")
 	}
 
 	err := PpzAuditBusiness.ApproveCarAudit(ctx, req.AuditId, req.AuditReason)
 	if err != nil {
-		return nil, fmt.Errorf("审核通过失败: %w", err)
+		return nil, errcode.Internal("审核通过失败", err)
 	}
 
 	return &ppzCs.ApproveCarAuditResponse{}, nil
@@ -454,12 +453,12 @@ func (b *ppzAdminBusiness) ApproveCarAuditWithReason(ctx context.Context, req *p
 // 审核驳回（带原因）
 func (b *ppzAdminBusiness) RejectCarAuditWithReason(ctx context.Context, req *ppzCs.RejectCarAuditRequest) (*ppzCs.RejectCarAuditResponse, error) {
 	if req.AuditId == 0 {
-		return nil, errors.New("审核记录ID不能为空")
+		return nil, errcode.InvalidParam("审核记录ID不能为空")
 	}
 
 	err := PpzAuditBusiness.RejectCarAudit(ctx, req.AuditId, req.AuditReason)
 	if err != nil {
-		return nil, fmt.Errorf("审核驳回失败: %w", err)
+		return nil, errcode.Internal("审核驳回失败", err)
 	}
 
 	return &ppzCs.RejectCarAuditResponse{}, nil

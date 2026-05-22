@@ -1,10 +1,10 @@
 package user
 
 import (
-	"errors"
 	"time"
 
 	longStoreBiz "github.com/armylong/armylong-go/internal/business/long_store"
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	"github.com/armylong/armylong-go/internal/middlewares"
 	"github.com/armylong/armylong-go/internal/model/user"
 	"golang.org/x/crypto/bcrypt"
@@ -13,17 +13,17 @@ import (
 // 注册
 func Register(req *RegisterRequest) (*LoginResponse, error) {
 	if req.Account == "" || req.Password == "" {
-		return nil, errors.New("账号和密码不能为空")
+		return nil, errcode.InvalidParam("账号和密码不能为空")
 	}
 
 	existingUser, _ := user.TbUserModel.GetByAccount(req.Account)
 	if existingUser != nil {
-		return nil, errors.New("账号已存在")
+		return nil, errcode.AlreadyExists("账号已存在")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, errors.New("密码加密失败")
+		return nil, errcode.Internal("密码加密失败", err)
 	}
 
 	u := &user.TbUser{
@@ -37,7 +37,7 @@ func Register(req *RegisterRequest) (*LoginResponse, error) {
 
 	_, err = user.TbUserModel.Create(u)
 	if err != nil {
-		return nil, errors.New("创建用户失败: " + err.Error())
+		return nil, errcode.Internal("创建用户失败", err)
 	}
 
 	createdUser, _ := user.TbUserModel.GetByAccount(req.Account)
@@ -48,7 +48,7 @@ func Register(req *RegisterRequest) (*LoginResponse, error) {
 	permission := user.TbAdminUserModel.GetUserPermission(createdUser.Uid)
 	token, expireAt, err := middlewares.GenerateToken(createdUser.Uid, createdUser.Name, "pc", permission, 7*24*time.Hour)
 	if err != nil {
-		return nil, errors.New("生成Token失败")
+		return nil, errcode.Internal("生成Token失败", err)
 	}
 
 	tokenRecord := &user.TbUserToken{

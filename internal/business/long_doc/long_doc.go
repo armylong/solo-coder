@@ -1,8 +1,7 @@
 package long_doc
 
 import (
-	"errors"
-
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	longDocCs "github.com/armylong/armylong-go/internal/cs/long_doc"
 	longDocModel "github.com/armylong/armylong-go/internal/model/long_doc"
 )
@@ -51,7 +50,7 @@ func isDescendant(uid, ancestorId, descendantId int64) bool {
 // 获取文档树
 func (b *longDocBusiness) GetDocList(uid int64) (*longDocCs.DocListResponse, error) {
 	if uid <= 0 {
-		return nil, errors.New("用户ID不能为空")
+		return nil, errcode.Unauthorized("用户ID不能为空")
 	}
 
 	docs, err := longDocModel.TbLongDocModel.ListByUid(uid)
@@ -67,16 +66,16 @@ func (b *longDocBusiness) GetDocList(uid int64) (*longDocCs.DocListResponse, err
 // 创建文档
 func (b *longDocBusiness) CreateDoc(uid int64, req *longDocCs.CreateDocRequest) (*longDocCs.CreateDocResponse, error) {
 	if uid <= 0 {
-		return nil, errors.New("用户ID不能为空")
+		return nil, errcode.Unauthorized("用户ID不能为空")
 	}
 	if req.DocName == "" {
-		return nil, errors.New("文档名称不能为空")
+		return nil, errcode.InvalidParam("文档名称不能为空")
 	}
 
 	if req.ParentDocId > 0 {
 		parentDoc, err := longDocModel.TbLongDocModel.GetByIdAndUid(req.ParentDocId, uid)
 		if err != nil || parentDoc == nil {
-			return nil, errors.New("父文档不存在")
+			return nil, errcode.NotFound("父文档不存在")
 		}
 	}
 
@@ -89,7 +88,7 @@ func (b *longDocBusiness) CreateDoc(uid int64, req *longDocCs.CreateDocRequest) 
 
 	docId, err := longDocModel.TbLongDocModel.Create(doc)
 	if err != nil {
-		return nil, errors.New("创建文档失败")
+		return nil, errcode.Internal("创建文档失败", err)
 	}
 
 	return &longDocCs.CreateDocResponse{
@@ -102,20 +101,20 @@ func (b *longDocBusiness) CreateDoc(uid int64, req *longDocCs.CreateDocRequest) 
 // 删除文档（含子文档）
 func (b *longDocBusiness) DeleteDoc(uid int64, req *longDocCs.DeleteDocRequest) error {
 	if uid <= 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.Unauthorized("用户ID不能为空")
 	}
 	if req.DocId <= 0 {
-		return errors.New("文档ID不能为空")
+		return errcode.InvalidParam("文档ID不能为空")
 	}
 
 	doc, err := longDocModel.TbLongDocModel.GetByIdAndUid(req.DocId, uid)
 	if err != nil || doc == nil {
-		return errors.New("文档不存在")
+		return errcode.NotFound("文档不存在")
 	}
 
 	err = longDocModel.TbLongDocModel.Delete(req.DocId, uid)
 	if err != nil {
-		return errors.New("删除文档失败")
+		return errcode.Internal("删除文档失败", err)
 	}
 
 	return nil
@@ -124,15 +123,15 @@ func (b *longDocBusiness) DeleteDoc(uid int64, req *longDocCs.DeleteDocRequest) 
 // 获取文档详情
 func (b *longDocBusiness) GetDoc(uid int64, req *longDocCs.GetDocRequest) (*longDocCs.GetDocResponse, error) {
 	if uid <= 0 {
-		return nil, errors.New("用户ID不能为空")
+		return nil, errcode.Unauthorized("用户ID不能为空")
 	}
 	if req.DocId <= 0 {
-		return nil, errors.New("文档ID不能为空")
+		return nil, errcode.InvalidParam("文档ID不能为空")
 	}
 
 	doc, err := longDocModel.TbLongDocModel.GetByIdAndUid(req.DocId, uid)
 	if err != nil || doc == nil {
-		return nil, errors.New("文档不存在")
+		return nil, errcode.NotFound("文档不存在")
 	}
 
 	return &longDocCs.GetDocResponse{
@@ -146,20 +145,20 @@ func (b *longDocBusiness) GetDoc(uid int64, req *longDocCs.GetDocRequest) (*long
 // 保存文档内容
 func (b *longDocBusiness) SaveDoc(uid int64, req *longDocCs.SaveDocRequest) error {
 	if uid <= 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.Unauthorized("用户ID不能为空")
 	}
 	if req.DocId <= 0 {
-		return errors.New("文档ID不能为空")
+		return errcode.InvalidParam("文档ID不能为空")
 	}
 
 	doc, err := longDocModel.TbLongDocModel.GetByIdAndUid(req.DocId, uid)
 	if err != nil || doc == nil {
-		return errors.New("文档不存在")
+		return errcode.NotFound("文档不存在")
 	}
 
 	err = longDocModel.TbLongDocModel.UpdateDocValue(req.DocId, uid, req.DocValue)
 	if err != nil {
-		return errors.New("保存文档失败")
+		return errcode.Internal("保存文档失败", err)
 	}
 
 	return nil
@@ -168,24 +167,24 @@ func (b *longDocBusiness) SaveDoc(uid int64, req *longDocCs.SaveDocRequest) erro
 // 重命名文档
 func (b *longDocBusiness) RenameDoc(uid int64, req *longDocCs.RenameDocRequest) error {
 	if uid <= 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.Unauthorized("用户ID不能为空")
 	}
 	if req.DocId <= 0 {
-		return errors.New("文档ID不能为空")
+		return errcode.InvalidParam("文档ID不能为空")
 	}
 	if req.DocName == "" {
-		return errors.New("文档名称不能为空")
+		return errcode.InvalidParam("文档名称不能为空")
 	}
 
 	doc, err := longDocModel.TbLongDocModel.GetByIdAndUid(req.DocId, uid)
 	if err != nil || doc == nil {
-		return errors.New("文档不存在")
+		return errcode.NotFound("文档不存在")
 	}
 
 	doc.DocName = req.DocName
 	err = longDocModel.TbLongDocModel.Update(doc)
 	if err != nil {
-		return errors.New("重命名失败")
+		return errcode.Internal("重命名失败", err)
 	}
 
 	return nil
@@ -194,25 +193,25 @@ func (b *longDocBusiness) RenameDoc(uid int64, req *longDocCs.RenameDocRequest) 
 // 移动文档（拖拽排序）
 func (b *longDocBusiness) MoveDoc(uid int64, req *longDocCs.MoveDocRequest) error {
 	if uid <= 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.Unauthorized("用户ID不能为空")
 	}
 	if req.DocId <= 0 {
-		return errors.New("文档ID不能为空")
+		return errcode.InvalidParam("文档ID不能为空")
 	}
 
 	doc, err := longDocModel.TbLongDocModel.GetByIdAndUid(req.DocId, uid)
 	if err != nil || doc == nil {
-		return errors.New("文档不存在")
+		return errcode.NotFound("文档不存在")
 	}
 
 	// 不能移动到自己的子文档下
 	if isDescendant(uid, req.DocId, req.ParentDocId) {
-		return errors.New("不能将文档移动到其子文档下")
+		return errcode.InvalidParam("不能将文档移动到其子文档下")
 	}
 
 	siblings, err := longDocModel.TbLongDocModel.ListByParentId(uid, req.ParentDocId)
 	if err != nil {
-		return errors.New("获取同级文档失败")
+		return errcode.Internal("获取同级文档失败", err)
 	}
 
 	var newSortOrder int
@@ -236,7 +235,7 @@ func (b *longDocBusiness) MoveDoc(uid int64, req *longDocCs.MoveDocRequest) erro
 
 	err = longDocModel.TbLongDocModel.UpdateParentAndSort(req.DocId, uid, req.ParentDocId, newSortOrder)
 	if err != nil {
-		return errors.New("移动文档失败")
+		return errcode.Internal("移动文档失败", err)
 	}
 
 	return nil

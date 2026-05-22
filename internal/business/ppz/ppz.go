@@ -3,9 +3,9 @@ package ppz
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	ppzCs "github.com/armylong/armylong-go/internal/cs/ppz"
 	ppzModel "github.com/armylong/armylong-go/internal/model/ppz"
 )
@@ -18,10 +18,10 @@ var PpzBusiness = &ppzBusiness{}
 func (b *ppzBusiness) checkDriverStatus(ctx context.Context, uid int64) error {
 	isDriverBanned, err := ppzModel.TbPpzUserModel.IsDriverBanned(uid)
 	if err != nil {
-		return fmt.Errorf("检查用户状态失败: %w", err)
+		return errcode.Internal("检查用户状态失败", err)
 	}
 	if isDriverBanned {
-		return errors.New("您的司机状态异常, 不能管理车辆, 如有需要请联系客服")
+		return errcode.PermissionDenied("您的司机状态异常, 不能管理车辆, 如有需要请联系客服")
 	}
 	return nil
 }
@@ -29,12 +29,12 @@ func (b *ppzBusiness) checkDriverStatus(ctx context.Context, uid int64) error {
 // 获取用户信息
 func (b *ppzBusiness) GetPpzUserInfo(ctx context.Context, uid int64) (*ppzCs.GetPpzUserInfoResponse, error) {
 	if uid == 0 {
-		return nil, errors.New("请先登录")
+		return nil, errcode.Unauthorized("请先登录")
 	}
 
 	user, err := ppzModel.TbPpzUserModel.GetOrCreateByUid(uid)
 	if err != nil {
-		return nil, fmt.Errorf("获取用户信息失败: %w", err)
+		return nil, errcode.Internal("获取用户信息失败", err)
 	}
 
 	return &ppzCs.GetPpzUserInfoResponse{
@@ -72,7 +72,7 @@ func (b *ppzBusiness) EditMyCar(ctx context.Context, uid int64, req *ppzCs.EditM
 // 获取车辆详情
 func (b *ppzBusiness) GetMyCarDetail(ctx context.Context, uid int64, req *ppzCs.GetCarDetailRequest) (*ppzCs.GetCarDetailResponse, error) {
 	if uid == 0 {
-		return nil, errors.New("请先登录")
+		return nil, errcode.Unauthorized("请先登录")
 	}
 
 	if err := b.checkDriverStatus(ctx, uid); err != nil {
@@ -85,14 +85,14 @@ func (b *ppzBusiness) GetMyCarDetail(ctx context.Context, uid int64, req *ppzCs.
 	if req.AuditId > 0 {
 		audit, err = ppzModel.TbPpzCarAuditModel.GetByUidAndId(uid, req.AuditId)
 		if err != nil || audit == nil {
-			return nil, errors.New("车辆不存在或无权限查看")
+			return nil, errcode.NotFound("车辆不存在或无权限查看")
 		}
 	} else if req.CarId > 0 {
 		audit, err = ppzModel.TbPpzCarAuditModel.GetByUidAndCarId(uid, req.CarId)
 		if err != nil || audit == nil {
 			car, err := ppzModel.TbPpzCarsModel.GetByUidAndId(uid, req.CarId)
 			if err != nil || car == nil {
-				return nil, fmt.Errorf("车辆不存在: %w", err)
+				return nil, errcode.NotFound("车辆不存在")
 			}
 			return &ppzCs.GetCarDetailResponse{
 				Car: &ppzCs.CarAuditDetail{
@@ -116,7 +116,7 @@ func (b *ppzBusiness) GetMyCarDetail(ctx context.Context, uid int64, req *ppzCs.
 			}, nil
 		}
 	} else {
-		return nil, errors.New("请提供车辆ID或审核ID")
+		return nil, errcode.InvalidParam("请提供车辆ID或审核ID")
 	}
 
 	carDetail := &ppzCs.CarAuditDetail{
@@ -154,7 +154,7 @@ func (b *ppzBusiness) GetAddressPickerData(ctx context.Context, uid int64) (*ppz
 
 	orders, err := ppzModel.TbPpzOrderModel.ListRecentByUid(uid, 3)
 	if err != nil {
-		return nil, fmt.Errorf("获取最近订单失败: %w", err)
+		return nil, errcode.Internal("获取最近订单失败", err)
 	}
 
 	// 按经纬度去重
@@ -162,7 +162,7 @@ func (b *ppzBusiness) GetAddressPickerData(ctx context.Context, uid int64) (*ppz
 	seenDest := make(map[string]bool)
 	for _, order := range orders {
 		if order.StartGaodeData != nil {
-			key := fmt.Sprintf("%.6f,%.6f", order.StartGaodeData.Lng, order.StartGaodeData.Lat)
+			key := formatLocation(order.StartGaodeData.Lng, order.StartGaodeData.Lat)
 			if !seenStart[key] {
 				seenStart[key] = true
 				gaodeBytes, _ := json.Marshal(order.StartGaodeData)
@@ -172,7 +172,7 @@ func (b *ppzBusiness) GetAddressPickerData(ctx context.Context, uid int64) (*ppz
 			}
 		}
 		if order.DestGaodeData != nil {
-			key := fmt.Sprintf("%.6f,%.6f", order.DestGaodeData.Lng, order.DestGaodeData.Lat)
+			key := formatLocation(order.DestGaodeData.Lng, order.DestGaodeData.Lat)
 			if !seenDest[key] {
 				seenDest[key] = true
 				gaodeBytes, _ := json.Marshal(order.DestGaodeData)
@@ -185,7 +185,7 @@ func (b *ppzBusiness) GetAddressPickerData(ctx context.Context, uid int64) (*ppz
 
 	addresses, err := ppzModel.TbPpzMapAddressModel.ListByUid(uid)
 	if err != nil {
-		return nil, fmt.Errorf("获取常用地址失败: %w", err)
+		return nil, errcode.Internal("获取常用地址失败", err)
 	}
 
 	for _, addr := range addresses {
@@ -200,34 +200,39 @@ func (b *ppzBusiness) GetAddressPickerData(ctx context.Context, uid int64) (*ppz
 	return resp, nil
 }
 
+// 格式化经纬度
+func formatLocation(lng, lat float64) string {
+	return fmt.Sprintf("%.6f,%.6f", lng, lat)
+}
+
 // 创建订单
 func (b *ppzBusiness) CreateOrder(ctx context.Context, uid int64, req *ppzCs.CreateOrderRequest) (*ppzCs.CreateOrderResponse, error) {
 	if req.StartGaodeData == "" {
-		return nil, errors.New("请选择出发地")
+		return nil, errcode.InvalidParam("请选择出发地")
 	}
 	if req.DestGaodeData == "" {
-		return nil, errors.New("请选择目的地")
+		return nil, errcode.InvalidParam("请选择目的地")
 	}
 	if req.DepartTime == "" {
-		return nil, errors.New("请选择出发时间")
+		return nil, errcode.InvalidParam("请选择出发时间")
 	}
 	if req.PassengerCount <= 0 {
-		return nil, errors.New("请选择乘车人数")
+		return nil, errcode.InvalidParam("请选择乘车人数")
 	}
 
 	var startGaodeData ppzModel.OrderGaodeData
 	if err := json.Unmarshal([]byte(req.StartGaodeData), &startGaodeData); err != nil {
-		return nil, fmt.Errorf("出发地数据格式错误: %w", err)
+		return nil, errcode.InvalidParam("出发地数据格式错误")
 	}
 
 	var destGaodeData ppzModel.OrderGaodeData
 	if err := json.Unmarshal([]byte(req.DestGaodeData), &destGaodeData); err != nil {
-		return nil, fmt.Errorf("目的地数据格式错误: %w", err)
+		return nil, errcode.InvalidParam("目的地数据格式错误")
 	}
 
 	activeOrder, _ := ppzModel.TbPpzOrderModel.GetActiveByUid(uid)
 	if activeOrder != nil {
-		return nil, errors.New("您已有进行中的订单")
+		return nil, errcode.AlreadyExists("您已有进行中的订单")
 	}
 
 	order := &ppzModel.TbPpzOrder{
@@ -243,7 +248,7 @@ func (b *ppzBusiness) CreateOrder(ctx context.Context, uid int64, req *ppzCs.Cre
 
 	orderId, err := ppzModel.TbPpzOrderModel.Create(order)
 	if err != nil {
-		return nil, fmt.Errorf("创建订单失败: %w", err)
+		return nil, errcode.Internal("创建订单失败", err)
 	}
 
 	return &ppzCs.CreateOrderResponse{
@@ -254,29 +259,29 @@ func (b *ppzBusiness) CreateOrder(ctx context.Context, uid int64, req *ppzCs.Cre
 // 取消订单
 func (b *ppzBusiness) CancelOrder(ctx context.Context, uid int64, req *ppzCs.CancelOrderRequest) (*ppzCs.CancelOrderResponse, error) {
 	if req.OrderId <= 0 {
-		return nil, errors.New("订单ID无效")
+		return nil, errcode.InvalidParam("订单ID无效")
 	}
 
 	order, err := ppzModel.TbPpzOrderModel.GetById(req.OrderId)
 	if err != nil {
-		return nil, errors.New("订单不存在")
+		return nil, errcode.NotFound("订单不存在")
 	}
 
 	if order.Uid != uid {
-		return nil, errors.New("无权操作此订单")
+		return nil, errcode.PermissionDenied("无权操作此订单")
 	}
 
 	if order.OrderStatus == ppzModel.OrderStatusCancelled {
-		return nil, errors.New("订单已取消")
+		return nil, errcode.AlreadyExists("订单已取消")
 	}
 
 	if order.OrderStatus >= ppzModel.OrderStatusAccepted {
-		return nil, errors.New("司机已接单，无法取消")
+		return nil, errcode.PermissionDenied("司机已接单，无法取消")
 	}
 
 	err = ppzModel.TbPpzOrderModel.Cancel(req.OrderId, "乘客主动取消")
 	if err != nil {
-		return nil, fmt.Errorf("取消订单失败: %w", err)
+		return nil, errcode.Internal("取消订单失败", err)
 	}
 
 	return &ppzCs.CancelOrderResponse{}, nil
@@ -286,7 +291,7 @@ func (b *ppzBusiness) CancelOrder(ctx context.Context, uid int64, req *ppzCs.Can
 func (b *ppzBusiness) GetMatchingOrders(ctx context.Context, uid int64) (*ppzCs.GetMatchingOrdersResponse, error) {
 	orders, err := ppzModel.TbPpzOrderModel.ListMatchingByUid(uid)
 	if err != nil {
-		return nil, fmt.Errorf("获取匹配中订单失败: %w", err)
+		return nil, errcode.Internal("获取匹配中订单失败", err)
 	}
 
 	list := make([]*ppzCs.OrderBriefItem, 0, len(orders))
@@ -312,7 +317,7 @@ func (b *ppzBusiness) GetMatchingOrders(ctx context.Context, uid int64) (*ppzCs.
 func (b *ppzBusiness) GetMyTrips(ctx context.Context, uid int64) (*ppzCs.GetMyTripsResponse, error) {
 	tripIds, err := ppzModel.TbPpzOrderModel.ListActiveTripIdsByUid(uid)
 	if err != nil {
-		return nil, fmt.Errorf("获取行程列表失败: %w", err)
+		return nil, errcode.Internal("获取行程列表失败", err)
 	}
 
 	list := make([]*ppzCs.TripItem, 0, len(tripIds))
