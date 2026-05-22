@@ -2,8 +2,8 @@ package gaode
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	gaodeCs "github.com/armylong/armylong-go/internal/cs/gaode"
 )
 
@@ -18,7 +18,7 @@ var gaodeApiPaths = map[string]string{
 func (b *GaodeBusiness) ProxyGaode(ctx context.Context, req *gaodeCs.GaodeProxyRequest) (*gaodeCs.GaodeProxyResponse, error) {
 	apiPath, ok := gaodeApiPaths[req.Api]
 	if !ok {
-		return nil, fmt.Errorf("不支持的高德API: %s", req.Api)
+		return nil, errcode.InvalidParamf("不支持的高德API: %s", req.Api)
 	}
 	return b.Proxy(ctx, apiPath, req)
 }

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	gaodeCs "github.com/armylong/armylong-go/internal/cs/gaode"
 	confLibrary "github.com/armylong/go-library/service/conf"
 )
@@ -20,7 +21,7 @@ var Business = &GaodeBusiness{}
 func (b *GaodeBusiness) Proxy(ctx context.Context, apiPath string, req *gaodeCs.GaodeProxyRequest) (*gaodeCs.GaodeProxyResponse, error) {
 	key := confLibrary.GetString("gaode-map-ppz-server.key")
 	if key == "" {
-		return nil, fmt.Errorf("高德地图Key未配置")
+		return nil, errcode.Internal("高德地图Key未配置", nil)
 	}
 
 	params := url.Values{}
@@ -53,13 +54,13 @@ func (b *GaodeBusiness) Proxy(ctx context.Context, apiPath string, req *gaodeCs.
 		}
 		httpReq, err = http.NewRequest("POST", apiURL, bytes.NewBufferString(form.Encode()))
 		if err != nil {
-			return nil, fmt.Errorf("创建高德API请求失败: %w", err)
+			return nil, errcode.Internal("创建高德API请求失败", err)
 		}
 		httpReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	} else {
 		httpReq, err = http.NewRequest("GET", apiURL, nil)
 		if err != nil {
-			return nil, fmt.Errorf("创建高德API请求失败: %w", err)
+			return nil, errcode.Internal("创建高德API请求失败", err)
 		}
 	}
 
@@ -71,13 +72,13 @@ func (b *GaodeBusiness) Proxy(ctx context.Context, apiPath string, req *gaodeCs.
 
 	resp, err := http.DefaultClient.Do(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("请求高德API失败: %w", err)
+		return nil, errcode.Internal("请求高德API失败", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("读取高德API响应失败: %w", err)
+		return nil, errcode.Internal("读取高德API响应失败", err)
 	}
 
 	return (*gaodeCs.GaodeProxyResponse)(&body), nil

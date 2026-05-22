@@ -3,12 +3,12 @@ package work
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 
 	feishuCloudDocBusiness "github.com/armylong/armylong-go/internal/business/feishu/cloud_doc"
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	configWork "github.com/armylong/armylong-go/internal/common/config"
 	libraryUtils "github.com/armylong/go-library/utils"
 	larkbitable "github.com/larksuite/oapi-sdk-go/v3/service/bitable/v1"
@@ -32,7 +32,7 @@ var CreateBusiness = &createBusiness{}
 // 初始化工作目录
 func (b *createBusiness) initWork() error {
 	if b.WorkHome == "" {
-		return errors.New("初始化失败: workHome is empty")
+		return errcode.Internal("初始化失败: workHome is empty", nil)
 	}
 
 	b.workSpace = b.WorkHome + `/works`
@@ -137,7 +137,7 @@ func (b *createBusiness) CreateWorks(ctx context.Context) (err error) {
 
 		if len(missingFields) > 0 {
 			fmt.Printf("质检数据文件必填字段校验失败: %v, 跳过\n", missingFields)
-			return errors.New("质检数据文件必填字段校验失败")
+			return errcode.InvalidParam("质检数据文件必填字段校验失败")
 		}
 
 		_, err = b.createFeishuDoc(ctx, uploadMap)

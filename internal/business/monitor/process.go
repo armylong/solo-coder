@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	monitorCs "github.com/armylong/armylong-go/internal/cs/monitor"
 	"github.com/shirou/gopsutil/v4/process"
 )
@@ -144,12 +145,12 @@ func (b *processBusiness) GetTopProcesses(by string, limit int) ([]monitorCs.Pro
 // 杀掉指定进程
 func (b *processBusiness) KillProcess(pid int32) error {
 	if pid <= 0 {
-		return fmt.Errorf("无效的进程ID: %d", pid)
+		return errcode.InvalidParamf("无效的进程ID: %d", pid)
 	}
 
 	p, err := process.NewProcess(pid)
 	if err != nil {
-		return fmt.Errorf("找不到进程 %d: %v", pid, err)
+		return errcode.NotFoundf("找不到进程 %d: %v", pid, err)
 	}
 
 	return p.Kill()
@@ -186,7 +187,7 @@ func (b *processBusiness) FindProcessByName(name string) ([]monitorCs.ProcessInf
 func (b *processBusiness) GetProcessInfo(pid int32) (*monitorCs.ProcessInfo, error) {
 	p, err := process.NewProcess(pid)
 	if err != nil {
-		return nil, fmt.Errorf("进程 %d 不存在", pid)
+		return nil, errcode.NotFoundf("进程 %d 不存在", pid)
 	}
 
 	info := b.convertProcess(p)

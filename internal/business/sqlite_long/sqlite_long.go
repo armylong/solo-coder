@@ -3,9 +3,9 @@ package sqlite_long
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"os"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	sqliteLong "github.com/armylong/armylong-go/internal/cs/sqlite_long"
 	"github.com/armylong/go-library/service/sqlite"
 )
@@ -297,7 +297,7 @@ func (b *sqliteLongBusiness) ClearTable(ctx context.Context, req *sqliteLong.Cle
 
 	_, err := db.Exec("DELETE FROM " + req.TableName)
 	if err != nil {
-		return errors.New("清空表失败: " + err.Error())
+		return errcode.Internal("清空表失败", err)
 	}
 
 	return nil
@@ -314,12 +314,12 @@ func (b *sqliteLongBusiness) DeleteRow(ctx context.Context, req *sqliteLong.Dele
 
 	result, err := db.Exec("DELETE FROM "+req.TableName+" WHERE "+pkColumn+" = ?", req.RowID)
 	if err != nil {
-		return errors.New("删除行失败: " + err.Error())
+		return errcode.Internal("删除行失败", err)
 	}
 
 	affected, _ := result.RowsAffected()
 	if affected == 0 {
-		return errors.New("未找到要删除的行")
+		return errcode.NotFound("未找到要删除的行")
 	}
 
 	return nil
@@ -336,13 +336,13 @@ func (b *sqliteLongBusiness) ExecuteSql(ctx context.Context, req *sqliteLong.Exe
 	if isQuery {
 		dataRows, err := db.Query(sqlStr)
 		if err != nil {
-			return nil, errors.New("执行SQL失败: " + err.Error())
+			return nil, errcode.Internal("执行SQL失败", err)
 		}
 		defer dataRows.Close()
 
 		columns, err := dataRows.Columns()
 		if err != nil {
-			return nil, errors.New("获取列信息失败: " + err.Error())
+			return nil, errcode.Internal("获取列信息失败", err)
 		}
 
 		var rows []map[string]any
@@ -378,7 +378,7 @@ func (b *sqliteLongBusiness) ExecuteSql(ctx context.Context, req *sqliteLong.Exe
 	} else {
 		result, err := db.Exec(sqlStr)
 		if err != nil {
-			return nil, errors.New("执行SQL失败: " + err.Error())
+			return nil, errcode.Internal("执行SQL失败", err)
 		}
 
 		affected, _ := result.RowsAffected()
@@ -422,7 +422,7 @@ func (b *sqliteLongBusiness) UpdateRow(ctx context.Context, req *sqliteLong.Upda
 	}
 
 	if len(req.Updates) == 0 {
-		return errors.New("没有要更新的字段")
+		return errcode.InvalidParam("没有要更新的字段")
 	}
 
 	setClause := ""
@@ -441,7 +441,7 @@ func (b *sqliteLongBusiness) UpdateRow(ctx context.Context, req *sqliteLong.Upda
 	}
 
 	if setClause == "" {
-		return errors.New("没有有效的更新字段")
+		return errcode.InvalidParam("没有有效的更新字段")
 	}
 
 	values = append(values, req.RowID)
@@ -449,12 +449,12 @@ func (b *sqliteLongBusiness) UpdateRow(ctx context.Context, req *sqliteLong.Upda
 
 	result, err := db.Exec(sqlStr, values...)
 	if err != nil {
-		return errors.New("更新失败: " + err.Error())
+		return errcode.Internal("更新失败", err)
 	}
 
 	affected, _ := result.RowsAffected()
 	if affected == 0 {
-		return errors.New("未找到要更新的行")
+		return errcode.NotFound("未找到要更新的行")
 	}
 
 	return nil
@@ -470,7 +470,7 @@ func (b *sqliteLongBusiness) DeleteRows(ctx context.Context, req *sqliteLong.Del
 	}
 
 	if len(req.RowIDs) == 0 {
-		return nil, errors.New("没有选择要删除的行")
+		return nil, errcode.InvalidParam("没有选择要删除的行")
 	}
 
 	placeholders := ""
@@ -487,7 +487,7 @@ func (b *sqliteLongBusiness) DeleteRows(ctx context.Context, req *sqliteLong.Del
 
 	result, err := db.Exec(sqlStr, values...)
 	if err != nil {
-		return nil, errors.New("批量删除失败: " + err.Error())
+		return nil, errcode.Internal("批量删除失败", err)
 	}
 
 	affected, _ := result.RowsAffected()

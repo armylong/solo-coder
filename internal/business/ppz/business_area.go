@@ -2,9 +2,8 @@ package ppz
 
 import (
 	"context"
-	"errors"
-	"fmt"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	ppzCs "github.com/armylong/armylong-go/internal/cs/ppz"
 	ppzModel "github.com/armylong/armylong-go/internal/model/ppz"
 )
@@ -26,12 +25,12 @@ func (b *businessAreaBusiness) List(ctx context.Context, req *ppzCs.BusinessArea
 
 	total, err := ppzModel.TbPpzBusinessAreaModel.Count(req.Status, req.Keyword)
 	if err != nil {
-		return nil, fmt.Errorf("获取运营区域数量失败: %w", err)
+		return nil, errcode.Internal("获取运营区域数量失败", err)
 	}
 
 	areas, err := ppzModel.TbPpzBusinessAreaModel.List(req.Status, req.Keyword, req.PageSize, offset)
 	if err != nil {
-		return nil, fmt.Errorf("获取运营区域列表失败: %w", err)
+		return nil, errcode.Internal("获取运营区域列表失败", err)
 	}
 
 	list := make([]*ppzCs.BusinessAreaItem, 0, len(areas))
@@ -57,10 +56,10 @@ func (b *businessAreaBusiness) List(ctx context.Context, req *ppzCs.BusinessArea
 // 创建区域
 func (b *businessAreaBusiness) Create(ctx context.Context, req *ppzCs.BusinessAreaCreateRequest) (*ppzCs.BusinessAreaCreateResponse, error) {
 	if req.AreaName == "" {
-		return nil, errors.New("区域名称不能为空")
+		return nil, errcode.InvalidParam("区域名称不能为空")
 	}
 	if req.AreaFence == nil || len(*req.AreaFence) == 0 {
-		return nil, errors.New("区域围栏数据不能为空")
+		return nil, errcode.InvalidParam("区域围栏数据不能为空")
 	}
 
 	area := &ppzModel.TbPpzBusinessArea{
@@ -71,7 +70,7 @@ func (b *businessAreaBusiness) Create(ctx context.Context, req *ppzCs.BusinessAr
 
 	areaId, err := ppzModel.TbPpzBusinessAreaModel.Create(area)
 	if err != nil {
-		return nil, fmt.Errorf("创建运营区域失败: %w", err)
+		return nil, errcode.Internal("创建运营区域失败", err)
 	}
 
 	return &ppzCs.BusinessAreaCreateResponse{
@@ -82,22 +81,22 @@ func (b *businessAreaBusiness) Create(ctx context.Context, req *ppzCs.BusinessAr
 // 更新区域
 func (b *businessAreaBusiness) Update(ctx context.Context, req *ppzCs.BusinessAreaUpdateRequest) (*ppzCs.BusinessAreaUpdateResponse, error) {
 	if req.AreaId == 0 {
-		return nil, errors.New("区域ID不能为空")
+		return nil, errcode.InvalidParam("区域ID不能为空")
 	}
 	if req.AreaName == "" {
-		return nil, errors.New("区域名称不能为空")
+		return nil, errcode.InvalidParam("区域名称不能为空")
 	}
 	if req.AreaFence == nil || len(*req.AreaFence) == 0 {
-		return nil, errors.New("区域围栏数据不能为空")
+		return nil, errcode.InvalidParam("区域围栏数据不能为空")
 	}
 
 	area, err := ppzModel.TbPpzBusinessAreaModel.GetById(req.AreaId)
 	if err != nil {
-		return nil, errors.New("运营区域不存在")
+		return nil, errcode.NotFound("运营区域不存在")
 	}
 
 	if area.Status == ppzModel.BusinessAreaStatusDeleted {
-		return nil, errors.New("该运营区域已删除")
+		return nil, errcode.NotFound("该运营区域已删除")
 	}
 
 	area.AreaName = req.AreaName
@@ -105,7 +104,7 @@ func (b *businessAreaBusiness) Update(ctx context.Context, req *ppzCs.BusinessAr
 
 	err = ppzModel.TbPpzBusinessAreaModel.Update(area)
 	if err != nil {
-		return nil, fmt.Errorf("更新运营区域失败: %w", err)
+		return nil, errcode.Internal("更新运营区域失败", err)
 	}
 
 	return &ppzCs.BusinessAreaUpdateResponse{}, nil
@@ -114,16 +113,16 @@ func (b *businessAreaBusiness) Update(ctx context.Context, req *ppzCs.BusinessAr
 // 区域详情
 func (b *businessAreaBusiness) Get(ctx context.Context, req *ppzCs.BusinessAreaGetRequest) (*ppzCs.BusinessAreaGetResponse, error) {
 	if req.AreaId == 0 {
-		return nil, errors.New("区域ID不能为空")
+		return nil, errcode.InvalidParam("区域ID不能为空")
 	}
 
 	area, err := ppzModel.TbPpzBusinessAreaModel.GetById(req.AreaId)
 	if err != nil {
-		return nil, errors.New("运营区域不存在")
+		return nil, errcode.NotFound("运营区域不存在")
 	}
 
 	if area.Status == ppzModel.BusinessAreaStatusDeleted {
-		return nil, errors.New("该运营区域已删除")
+		return nil, errcode.NotFound("该运营区域已删除")
 	}
 
 	return &ppzCs.BusinessAreaGetResponse{
@@ -141,30 +140,30 @@ func (b *businessAreaBusiness) Get(ctx context.Context, req *ppzCs.BusinessAreaG
 // 停用区域
 func (b *businessAreaBusiness) Disable(ctx context.Context, req *ppzCs.BusinessAreaDisableRequest) (*ppzCs.BusinessAreaDisableResponse, error) {
 	if req.AreaId == 0 {
-		return nil, errors.New("区域ID不能为空")
+		return nil, errcode.InvalidParam("区域ID不能为空")
 	}
 
 	area, err := ppzModel.TbPpzBusinessAreaModel.GetById(req.AreaId)
 	if err != nil {
-		return nil, errors.New("运营区域不存在")
+		return nil, errcode.NotFound("运营区域不存在")
 	}
 
 	if area.Status == ppzModel.BusinessAreaStatusDeleted {
-		return nil, errors.New("该运营区域已删除")
+		return nil, errcode.NotFound("该运营区域已删除")
 	}
 
 	if area.Status == ppzModel.BusinessAreaStatusDisabled {
-		return nil, errors.New("该运营区域已停用")
+		return nil, errcode.AlreadyExists("该运营区域已停用")
 	}
 
 	routeCount, _ := ppzModel.TbPpzBusinessRouteModel.CountByAreaId(req.AreaId)
 	if routeCount > 0 {
-		return nil, fmt.Errorf("该区域下存在 %d 条运营路线，请先处理相关路线", routeCount)
+		return nil, errcode.InvalidParamf("该区域下存在 %d 条运营路线，请先处理相关路线", routeCount)
 	}
 
 	err = ppzModel.TbPpzBusinessAreaModel.Disable(req.AreaId)
 	if err != nil {
-		return nil, fmt.Errorf("停用运营区域失败: %w", err)
+		return nil, errcode.Internal("停用运营区域失败", err)
 	}
 
 	return &ppzCs.BusinessAreaDisableResponse{}, nil
@@ -173,25 +172,25 @@ func (b *businessAreaBusiness) Disable(ctx context.Context, req *ppzCs.BusinessA
 // 启用区域
 func (b *businessAreaBusiness) Enable(ctx context.Context, req *ppzCs.BusinessAreaEnableRequest) (*ppzCs.BusinessAreaEnableResponse, error) {
 	if req.AreaId == 0 {
-		return nil, errors.New("区域ID不能为空")
+		return nil, errcode.InvalidParam("区域ID不能为空")
 	}
 
 	area, err := ppzModel.TbPpzBusinessAreaModel.GetById(req.AreaId)
 	if err != nil {
-		return nil, errors.New("运营区域不存在")
+		return nil, errcode.NotFound("运营区域不存在")
 	}
 
 	if area.Status == ppzModel.BusinessAreaStatusDeleted {
-		return nil, errors.New("该运营区域已删除")
+		return nil, errcode.NotFound("该运营区域已删除")
 	}
 
 	if area.Status == ppzModel.BusinessAreaStatusNormal {
-		return nil, errors.New("该运营区域已启用")
+		return nil, errcode.AlreadyExists("该运营区域已启用")
 	}
 
 	err = ppzModel.TbPpzBusinessAreaModel.Enable(req.AreaId)
 	if err != nil {
-		return nil, fmt.Errorf("启用运营区域失败: %w", err)
+		return nil, errcode.Internal("启用运营区域失败", err)
 	}
 
 	return &ppzCs.BusinessAreaEnableResponse{}, nil
@@ -200,26 +199,26 @@ func (b *businessAreaBusiness) Enable(ctx context.Context, req *ppzCs.BusinessAr
 // 删除区域
 func (b *businessAreaBusiness) Delete(ctx context.Context, req *ppzCs.BusinessAreaDeleteRequest) (*ppzCs.BusinessAreaDeleteResponse, error) {
 	if req.AreaId == 0 {
-		return nil, errors.New("区域ID不能为空")
+		return nil, errcode.InvalidParam("区域ID不能为空")
 	}
 
 	area, err := ppzModel.TbPpzBusinessAreaModel.GetById(req.AreaId)
 	if err != nil {
-		return nil, errors.New("运营区域不存在")
+		return nil, errcode.NotFound("运营区域不存在")
 	}
 
 	if area.Status == ppzModel.BusinessAreaStatusDeleted {
-		return nil, errors.New("该运营区域已删除")
+		return nil, errcode.NotFound("该运营区域已删除")
 	}
 
 	routeCount, _ := ppzModel.TbPpzBusinessRouteModel.CountByAreaId(req.AreaId)
 	if routeCount > 0 {
-		return nil, fmt.Errorf("该区域下存在 %d 条运营路线，请先处理相关路线", routeCount)
+		return nil, errcode.InvalidParamf("该区域下存在 %d 条运营路线，请先处理相关路线", routeCount)
 	}
 
 	err = ppzModel.TbPpzBusinessAreaModel.Delete(req.AreaId)
 	if err != nil {
-		return nil, fmt.Errorf("删除运营区域失败: %w", err)
+		return nil, errcode.Internal("删除运营区域失败", err)
 	}
 
 	return &ppzCs.BusinessAreaDeleteResponse{}, nil
@@ -229,7 +228,7 @@ func (b *businessAreaBusiness) Delete(ctx context.Context, req *ppzCs.BusinessAr
 func (b *businessAreaBusiness) ListActive(ctx context.Context) (*ppzCs.BusinessAreaListActiveResponse, error) {
 	areas, err := ppzModel.TbPpzBusinessAreaModel.ListActive()
 	if err != nil {
-		return nil, fmt.Errorf("获取运营区域列表失败: %w", err)
+		return nil, errcode.Internal("获取运营区域列表失败", err)
 	}
 
 	list := make([]*ppzCs.BusinessAreaActiveItem, 0, len(areas))

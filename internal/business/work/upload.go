@@ -3,11 +3,11 @@ package work
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 
 	feishuCloudDocBusiness "github.com/armylong/armylong-go/internal/business/feishu/cloud_doc"
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	configWork "github.com/armylong/armylong-go/internal/common/config"
 	libraryUtils "github.com/armylong/go-library/utils"
 	larkbitable "github.com/larksuite/oapi-sdk-go/v3/service/bitable/v1"
@@ -32,7 +32,7 @@ var UploadBusiness = &uploadBusiness{}
 // 初始化工作目录
 func (b *uploadBusiness) initWork() error {
 	if b.WorkHome == "" {
-		return errors.New("初始化失败: workHome is empty")
+		return errcode.Internal("初始化失败: workHome is empty", nil)
 	}
 
 	b.workSpace = b.WorkHome + `/works`

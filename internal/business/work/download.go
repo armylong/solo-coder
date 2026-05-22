@@ -3,11 +3,11 @@ package work
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 
 	feishuCloudDocBusiness "github.com/armylong/armylong-go/internal/business/feishu/cloud_doc"
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	configWork "github.com/armylong/armylong-go/internal/common/config"
 	larkbitable "github.com/larksuite/oapi-sdk-go/v3/service/bitable/v1"
 )
@@ -28,19 +28,19 @@ var DownloadBusiness = &downloadBusiness{}
 // 初始化工作目录
 func (b *downloadBusiness) initWork() error {
 	if b.WorkHome == "" {
-		return errors.New("初始化失败: workHome is empty")
+		return errcode.Internal("初始化失败: workHome is empty", nil)
 	}
 	if b.DownloadFields == nil {
-		return errors.New("初始化失败: downloadFields is empty")
+		return errcode.Internal("初始化失败: downloadFields is empty", nil)
 	}
 	if b.FeishuDocAppToken == "" {
-		return errors.New("初始化失败: feishuDocAppToken is empty")
+		return errcode.Internal("初始化失败: feishuDocAppToken is empty", nil)
 	}
 	if b.FeishuDocTableId == "" {
-		return errors.New("初始化失败: feishuDocTableId is empty")
+		return errcode.Internal("初始化失败: feishuDocTableId is empty", nil)
 	}
 	if b.FeishuDocViewId == "" {
-		return errors.New("初始化失败: feishuDocViewId is empty")
+		return errcode.Internal("初始化失败: feishuDocViewId is empty", nil)
 	}
 
 	b.workSpace = b.WorkHome + `/works`

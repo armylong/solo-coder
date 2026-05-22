@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	monitorCs "github.com/armylong/armylong-go/internal/cs/monitor"
 	"github.com/shirou/gopsutil/v4/net"
 	"github.com/shirou/gopsutil/v4/process"
@@ -163,13 +164,13 @@ func (b *networkBusiness) FindProcessByPort(port int) (*monitorCs.PortInfo, erro
 		}
 	}
 
-	return nil, fmt.Errorf("端口 %d 未被占用", port)
+	return nil, errcode.NotFoundf("端口 %d 未被占用", port)
 }
 
 // 杀掉占用指定端口的进程
 func (b *networkBusiness) KillProcessByPort(port int) error {
 	if port <= 0 || port > 65535 {
-		return fmt.Errorf("无效的端口号: %d", port)
+		return errcode.InvalidParamf("无效的端口号: %d", port)
 	}
 
 	portInfo, err := b.FindProcessByPort(port)
@@ -178,7 +179,7 @@ func (b *networkBusiness) KillProcessByPort(port int) error {
 	}
 
 	if portInfo.PID == 0 {
-		return fmt.Errorf("无法获取占用端口 %d 的进程ID", port)
+		return errcode.NotFoundf("无法获取占用端口 %d 的进程ID", port)
 	}
 
 	return ProcessBusiness.KillProcess(portInfo.PID)

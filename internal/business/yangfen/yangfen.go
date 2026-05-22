@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	yangfenModel "github.com/armylong/armylong-go/internal/model/yangfen"
 )
 
@@ -36,7 +37,7 @@ func (b *yangfenBusiness) checkAndClearExpired(ctx context.Context, uid string) 
 // 充值
 func (b *yangfenBusiness) Recharge(ctx context.Context, uid string, amount int, expireSec int64) error {
 	if amount <= 0 {
-		return fmt.Errorf("充值金额必须大于0")
+		return errcode.InvalidParam("充值金额必须大于0")
 	}
 
 	b.checkAndClearExpired(ctx, uid)
@@ -54,18 +55,18 @@ func (b *yangfenBusiness) Recharge(ctx context.Context, uid string, amount int, 
 // 消费
 func (b *yangfenBusiness) Consume(ctx context.Context, uid string, amount int) error {
 	if amount <= 0 {
-		return fmt.Errorf("消费金额必须大于0")
+		return errcode.InvalidParam("消费金额必须大于0")
 	}
 
 	b.checkAndClearExpired(ctx, uid)
 
 	row, err := yangfenModel.TbYangfenBalanceModel.GetByUid(uid)
 	if err != nil {
-		return fmt.Errorf("用户不存在")
+		return errcode.NotFound("用户不存在")
 	}
 
 	if row.Balance < amount {
-		return fmt.Errorf("余额不足")
+		return errcode.InvalidParam("余额不足")
 	}
 
 	newBalance := row.Balance - amount
@@ -78,10 +79,10 @@ func (b *yangfenBusiness) Consume(ctx context.Context, uid string, amount int) e
 // 转账
 func (b *yangfenBusiness) Transfer(ctx context.Context, fromUid, toUid string, amount int) error {
 	if amount <= 0 {
-		return fmt.Errorf("转账金额必须大于0")
+		return errcode.InvalidParam("转账金额必须大于0")
 	}
 	if fromUid == toUid {
-		return fmt.Errorf("不能转给自己")
+		return errcode.InvalidParam("不能转给自己")
 	}
 
 	b.checkAndClearExpired(ctx, fromUid)
@@ -89,11 +90,11 @@ func (b *yangfenBusiness) Transfer(ctx context.Context, fromUid, toUid string, a
 
 	fromRow, err := yangfenModel.TbYangfenBalanceModel.GetByUid(fromUid)
 	if err != nil {
-		return fmt.Errorf("转出账户不存在")
+		return errcode.NotFound("转出账户不存在")
 	}
 
 	if fromRow.Balance < amount {
-		return fmt.Errorf("余额不足")
+		return errcode.InvalidParam("余额不足")
 	}
 
 	toRow, _ := yangfenModel.TbYangfenBalanceModel.GetByUid(toUid)
@@ -117,11 +118,11 @@ func (b *yangfenBusiness) Transfer(ctx context.Context, fromUid, toUid string, a
 func (b *yangfenBusiness) Refund(ctx context.Context, uid string, transactionId string) error {
 	tx, err := yangfenModel.TbYangfenTransactionModel.GetByTransactionId(transactionId)
 	if err != nil {
-		return fmt.Errorf("交易记录不存在")
+		return errcode.NotFound("交易记录不存在")
 	}
 
 	if tx.Type != "consume" {
-		return fmt.Errorf("只能退款消费记录")
+		return errcode.InvalidParam("只能退款消费记录")
 	}
 
 	balance, _ := b.GetBalance(ctx, uid)

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	monitorCs "github.com/armylong/armylong-go/internal/cs/monitor"
 )
 
@@ -30,7 +31,7 @@ func (b *gpuBusiness) GetGPUInfo() ([]monitorCs.GPUInfo, error) {
 	}
 
 	if len(gpus) == 0 {
-		return nil, fmt.Errorf("未检测到GPU设备")
+		return nil, errcode.NotFound("未检测到GPU设备")
 	}
 
 	return gpus, nil

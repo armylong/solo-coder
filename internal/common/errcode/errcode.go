@@ -74,6 +74,10 @@ func NotFound(message string) *Error {
 	return New(CodeNotFound, message)
 }
 
+func NotFoundf(format string, args ...interface{}) *Error {
+	return Newf(CodeNotFound, format, args...)
+}
+
 func Internal(message string, err error) *Error {
 	return Wrap(CodeInternal, message, err)
 }

@@ -1,8 +1,7 @@
 package settings
 
 import (
-	"errors"
-
+	"github.com/armylong/armylong-go/internal/common/errcode"
 	settingsCs "github.com/armylong/armylong-go/internal/cs/settings"
 	desktopModel "github.com/armylong/armylong-go/internal/model/desktop"
 	userModel "github.com/armylong/armylong-go/internal/model/user"
@@ -27,23 +26,23 @@ func hasPermission(userPermission, appPermission int) bool {
 // 设置桌面应用位置
 func (b *settingsBusiness) SetDesktopApp(req *settingsCs.SetDesktopAppRequest) error {
 	if req.Uid <= 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.InvalidParam("用户ID不能为空")
 	}
 	if req.AppId <= 0 {
-		return errors.New("应用ID不能为空")
+		return errcode.InvalidParam("应用ID不能为空")
 	}
 	if req.X < 0 || req.X > 100 || req.Y < 0 || req.Y > 100 {
-		return errors.New("坐标必须在0-100之间")
+		return errcode.InvalidParam("坐标必须在0-100之间")
 	}
 
 	app, err := desktopModel.TbAppModel.GetByAppId(req.AppId)
 	if err != nil || app == nil {
-		return errors.New("应用不存在")
+		return errcode.NotFound("应用不存在")
 	}
 
 	userPermission := userModel.TbAdminUserModel.GetUserPermission(req.Uid)
 	if !hasPermission(userPermission, app.Permission) {
-		return errors.New("没有权限访问该应用")
+		return errcode.PermissionDenied("没有权限访问该应用")
 	}
 
 	ext := &desktopModel.UserAppExt{
@@ -59,7 +58,7 @@ func (b *settingsBusiness) SetDesktopApp(req *settingsCs.SetDesktopAppRequest) e
 		desktopModel.UserAppStatusInstalled,
 	)
 	if err != nil {
-		return errors.New("保存应用位置失败")
+		return errcode.Internal("保存应用位置失败", err)
 	}
 
 	return nil
@@ -68,28 +67,28 @@ func (b *settingsBusiness) SetDesktopApp(req *settingsCs.SetDesktopAppRequest) e
 // 设置Dock栏应用位置，自动处理索引偏移
 func (b *settingsBusiness) SetDockApp(req *settingsCs.SetDockAppRequest) error {
 	if req.Uid <= 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.InvalidParam("用户ID不能为空")
 	}
 	if req.AppId <= 0 {
-		return errors.New("应用ID不能为空")
+		return errcode.InvalidParam("应用ID不能为空")
 	}
 	if req.DockIndex < 0 {
-		return errors.New("Dock位置索引不能为负数")
+		return errcode.InvalidParam("Dock位置索引不能为负数")
 	}
 
 	app, err := desktopModel.TbAppModel.GetByAppId(req.AppId)
 	if err != nil || app == nil {
-		return errors.New("应用不存在")
+		return errcode.NotFound("应用不存在")
 	}
 
 	userPermission := userModel.TbAdminUserModel.GetUserPermission(req.Uid)
 	if !hasPermission(userPermission, app.Permission) {
-		return errors.New("没有权限访问该应用")
+		return errcode.PermissionDenied("没有权限访问该应用")
 	}
 
 	currentDockApps, err := desktopModel.TbUserAppModel.ListDockAppsByUid(req.Uid)
 	if err != nil {
-		return errors.New("获取当前Dock栏应用失败")
+		return errcode.Internal("获取当前Dock栏应用失败", err)
 	}
 
 	var existingApp *desktopModel.TbUserApp
@@ -146,7 +145,7 @@ func (b *settingsBusiness) SetDockApp(req *settingsCs.SetDockAppRequest) error {
 		desktopModel.UserAppStatusInstalled,
 	)
 	if err != nil {
-		return errors.New("保存应用位置失败")
+		return errcode.Internal("保存应用位置失败", err)
 	}
 
 	return nil
@@ -155,10 +154,10 @@ func (b *settingsBusiness) SetDockApp(req *settingsCs.SetDockAppRequest) error {
 // 移除应用，Dock栏应用移除后自动补位
 func (b *settingsBusiness) RemoveApp(req *settingsCs.RemoveAppRequest) error {
 	if req.Uid <= 0 {
-		return errors.New("用户ID不能为空")
+		return errcode.InvalidParam("用户ID不能为空")
 	}
 	if req.AppId <= 0 {
-		return errors.New("应用ID不能为空")
+		return errcode.InvalidParam("应用ID不能为空")
 	}
 
 	userApp, err := desktopModel.TbUserAppModel.GetByUidAndAppId(req.Uid, req.AppId)
@@ -183,7 +182,7 @@ func (b *settingsBusiness) RemoveApp(req *settingsCs.RemoveAppRequest) error {
 
 	err = desktopModel.TbUserAppModel.Delete(req.Uid, req.AppId)
 	if err != nil {
-		return errors.New("移除应用失败")
+		return errcode.Internal("移除应用失败", err)
 	}
 
 	return nil
